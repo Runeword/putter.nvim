@@ -4,28 +4,47 @@ local f = vim.fn
 
 local M = {}
 
-local function put(keys)
-	local count = v.count
+local function putLinewise(keys)
+	local count = v.count1
 	local name = v.register
 	local contents = f.getreg(name)
 	local type = f.getregtype(name)
 	local linewise = "V"
+	local motion = "`]"
 
-	-- print('normal! ' .. count .. '"' .. name .. keys .. '`]')
+	if type ~= linewise then
+		f.setreg(name, contents, linewise)
+  end
+		f.execute("normal! " .. count .. '"' .. name .. keys .. motion)
+end
+
+local function putCharwise(keys)
+	local count = v.count1
+	local name = v.register
+	local contents = f.getreg(name)
+	local type = f.getregtype(name)
+	local linewise = "V"
+	local charwise = "v"
 
 	if type == linewise then
-		f.execute("normal! " .. count .. '"' .. name .. keys .. "`]")
-	else
-		f.setreg(name, contents, linewise)
-		f.execute("normal! " .. count .. '"' .. name .. keys .. "`]")
+		-- Remove spaces at both extremities
+		local str = string.gsub(contents, "^%s*(.-)%s*$", "%1")
+		f.setreg(name, str, charwise)
 	end
+  f.execute("normal! " .. count .. '"' .. name .. keys)
 end
 
+M.charwiseAfter = function()
+  putCharwise("p")
+end
+M.charwiseBefore = function()
+  putCharwise("P")
+end
 M.above = function()
-	put("]P")
+	putLinewise("]P")
 end
 M.below = function()
-	put("]p")
+	putLinewise("]p")
 end
 M.setup = function(opts) end
 
