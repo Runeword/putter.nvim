@@ -1,6 +1,7 @@
 local v = vim.v
 local f = vim.fn
 -- local map = vim.keymap.set
+-- vim.pretty_print(buffers)
 
 local M = {}
 
@@ -34,6 +35,18 @@ local function putCharwise(keys)
 		f.setreg(register.name, str, charwise)
 	end
 	f.execute("normal! " .. count .. '"' .. register.name .. keys)
+end
+
+M.quickfixBuffers = function()
+	local lastBuffer = f.bufnr("$")
+	local items = {}
+
+	for i = 1, lastBuffer do
+		if f.buflisted(i) == 1 then
+			table.insert(items, { bufnr = i })
+		end
+	end
+	f.setqflist(items)
 end
 
 M.putCharwiseAfter = function()
