@@ -1,5 +1,6 @@
 local v = vim.v
 local f = vim.fn
+local c = vim.cmd
 -- local map = vim.keymap.set
 -- vim.pretty_print(buffers)
 
@@ -37,7 +38,7 @@ local function putCharwise(keys)
 	f.execute("normal! " .. count .. '"' .. register.name .. keys)
 end
 
-M.quickfixBuffers = function()
+M.buffersToQfWindow = function()
 	local lastBuffer = f.bufnr("$")
 	local items = {}
 
@@ -47,6 +48,18 @@ M.quickfixBuffers = function()
 		end
 	end
 	f.setqflist(items)
+end
+
+M.nextQfItem = function()
+  if not pcall(c, "cnext") then
+    pcall(c, "cfirst")
+  end
+end
+
+M.prevQfItem = function()
+  if not pcall(c, "cprev") then
+    pcall(c, "clast")
+  end
 end
 
 M.putCharwiseAfter = function()
