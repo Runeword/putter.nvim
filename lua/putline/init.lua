@@ -53,17 +53,34 @@ end
 
 local timer
 M.cycleNextQfItem = function()
-	if timer ~= nil then
+	local lastWindow = f.winnr("$")
+	local quickfixWindow
+
+	for i = 1, lastWindow do
+		if f.getwinvar(i, "&syntax") == "qf" then
+			quickfixWindow = true
+			break
+		end
+
+		if i == lastWindow and not quickfixWindow then
+			M.buffersToQfWindow()
+		end
+	end
+
+	if timer then
 		timer:close()
 	end
+
 	if not pcall(c, "cnext") then
 		pcall(c, "cfirst")
 	end
+
 	timer = vim.defer_fn(function()
 		c("cclose")
 		timer = nil
 	end, 1000)
-	print(timer)
+
+	-- print(timer)
 end
 
 M.cyclePrevQfItem = function()
