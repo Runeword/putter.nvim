@@ -48,7 +48,6 @@ M.addBuffersToQfList = function()
 		end
 	end
 	fn.setqflist(items)
-  cmd("copen")
 end
 
 local timer
@@ -60,7 +59,7 @@ local function cycleQfItem(a, b)
 		if fn.getwinvar(i, "&syntax") == "qf" then
 			break
 		elseif i == lastWindow then
-			cmd("copen")
+			cmd("silent copen")
 		end
 	end
 
