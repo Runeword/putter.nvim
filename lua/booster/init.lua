@@ -54,16 +54,12 @@ end
 local timer
 M.cycleNextQfItem = function()
 	local lastWindow = f.winnr("$")
-	local quickfixWindow
 
 	for i = 1, lastWindow do
 		if f.getwinvar(i, "&syntax") == "qf" then
-			quickfixWindow = true
 			break
-		end
-
-		if i == lastWindow and not quickfixWindow then
-			M.buffersToQfWindow()
+		elseif i == lastWindow then
+				M.buffersToQfWindow()
 		end
 	end
 
