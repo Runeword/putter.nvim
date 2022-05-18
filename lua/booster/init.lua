@@ -48,7 +48,7 @@ M.buffersToQfWindow = function()
 		end
 	end
 	f.setqflist(items)
-	c("copen")
+  c("copen")
 end
 
 local timer
@@ -59,28 +59,25 @@ M.cycleNextQfItem = function()
 		if f.getwinvar(i, "&syntax") == "qf" then
 			break
 		elseif i == lastWindow then
-				M.buffersToQfWindow()
+			c("copen")
 		end
 	end
 
 	if timer then
 		timer:close()
 	end
-
+	--
 	if not pcall(c, "cnext") then
 		pcall(c, "cfirst")
 	end
-
+	--
 	timer = vim.defer_fn(function()
 		c("cclose")
 		timer = nil
 	end, 1000)
-
-	-- print(timer)
 end
 
 M.cyclePrevQfItem = function()
-	-- M.buffersToQfWindow()
 	if not pcall(c, "cprev") then
 		pcall(c, "clast")
 	end
