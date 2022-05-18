@@ -1,6 +1,6 @@
 local v = vim.v
-local f = vim.fn
-local c = vim.cmd
+local fn = vim.fn
+local cmd = vim.cmd
 -- local map = vim.keymap.set
 -- vim.pretty_print(buffers)
 
@@ -9,23 +9,23 @@ local M = {}
 local function putLinewise(keys)
 	local register = {}
 	register.name = v.register
-	register.contents = f.getreg(register.name)
-	register.type = f.getregtype(register.name)
+	register.contents = fn.getreg(register.name)
+	register.type = fn.getregtype(register.name)
 	local linewise = "V"
 	local motion = "`]"
 	local count = v.count1
 
 	if register.type ~= linewise then
-		f.setreg(register.name, register.contents, linewise)
+		fn.setreg(register.name, register.contents, linewise)
 	end
-	f.execute("normal! " .. count .. '"' .. register.name .. keys .. motion)
+	fn.execute("normal! " .. count .. '"' .. register.name .. keys .. motion)
 end
 
 local function putCharwise(keys)
 	local register = {}
 	register.name = v.register
-	register.contents = f.getreg(register.name)
-	register.type = f.getregtype(register.name)
+	register.contents = fn.getreg(register.name)
+	register.type = fn.getregtype(register.name)
 	local linewise = "V"
 	local charwise = "v"
 	local count = v.count1
@@ -33,33 +33,34 @@ local function putCharwise(keys)
 	if register.type == linewise then
 		-- Remove spaces at both extremities
 		local str = string.gsub(register.contents, "^%s*(.-)%s*$", "%1")
-		f.setreg(register.name, str, charwise)
+		fn.setreg(register.name, str, charwise)
 	end
-	f.execute("normal! " .. count .. '"' .. register.name .. keys)
+	fn.execute("normal! " .. count .. '"' .. register.name .. keys)
 end
 
-M.buffersToQfWindow = function()
-	local lastBuffer = f.bufnr("$")
+M.addBuffersToQfList = function()
+	local lastBuffer = fn.bufnr("$")
 	local items = {}
 
 	for i = 1, lastBuffer do
-		if f.buflisted(i) == 1 then
+		if fn.buflisted(i) == 1 then
 			table.insert(items, { bufnr = i })
 		end
 	end
-	f.setqflist(items)
-  c("copen")
+	fn.setqflist(items)
+  cmd("copen")
 end
 
 local timer
-M.cycleNextQfItem = function()
-	local lastWindow = f.winnr("$")
+
+local function cycleQfItem(a, b)
+	local lastWindow = fn.winnr("$")
 
 	for i = 1, lastWindow do
-		if f.getwinvar(i, "&syntax") == "qf" then
+		if fn.getwinvar(i, "&syntax") == "qf" then
 			break
 		elseif i == lastWindow then
-			c("copen")
+			cmd("copen")
 		end
 	end
 
@@ -67,22 +68,22 @@ M.cycleNextQfItem = function()
 		timer:close()
 	end
 	--
-	if not pcall(c, "cnext") then
-		pcall(c, "cfirst")
+	if not pcall(cmd, a) then
+		pcall(cmd, b)
 	end
 	--
 	timer = vim.defer_fn(function()
-		c("cclose")
+		cmd("cclose")
 		timer = nil
 	end, 1000)
 end
 
-M.cyclePrevQfItem = function()
-	if not pcall(c, "cprev") then
-		pcall(c, "clast")
-	end
+M.cycleNextQfItem = function()
+  cycleQfItem("cnext", "cfirst")
 end
-
+M.cyclePrevQfItem = function()
+  cycleQfItem("cprev", "clast")
+end
 M.putCharwiseAfter = function()
 	putCharwise("p")
 end
