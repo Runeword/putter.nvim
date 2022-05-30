@@ -6,36 +6,50 @@ local cmd = vim.cmd
 
 local M = {}
 
-local function putLinewise(keys)
+local function putLinewise(command, prefix, suffix, mark)
   local register = {}
   register.name = v.register
   register.contents = fn.getreg(register.name)
   register.type = fn.getregtype(register.name)
   local linewise = "V"
-  local motion = "`]"
   local count = v.count1
+  local str = ''
 
-  if register.type ~= linewise then
-    fn.setreg(register.name, register.contents, linewise)
-  end
-  fn.execute("normal! " .. count .. '"' .. register.name .. keys .. motion)
+  -- if register.type ~= linewise then
+
+  -- Add prefix and suffix
+  str = (prefix or '') .. register.contents .. (suffix or '')
+
+  fn.setreg(register.name, str, linewise)
+  fn.execute("normal! " .. count .. '"' .. register.name .. command .. (mark or ''))
+  fn.setreg(register.name, register.contents, register.type)
 end
 
-local function putCharwise(keys)
-  local register = {}
-  register.name = v.register
-  register.contents = fn.getreg(register.name)
-  register.type = fn.getregtype(register.name)
+local function putCharwise(command, prefix, suffix)
   local linewise = "V"
   local charwise = "v"
   local count = v.count1
+  local register = {}
+  local str = ''
+
+  register.name = v.register
+  register.type = fn.getregtype(register.name)
+  register.contents = fn.getreg(register.name)
 
   if register.type == linewise then
     -- Remove spaces at both extremities
-    local str = string.gsub(register.contents, "^%s*(.-)%s*$", "%1")
-    fn.setreg(register.name, str, charwise)
+    str = string.gsub(register.contents, "^%s*(.-)%s*$", "%1")
+  else
+    str = register.contents
   end
-  fn.execute("normal! " .. count .. '"' .. register.name .. keys)
+
+  -- Add prefix and suffix
+  str = (prefix or '') .. str .. (suffix or '')
+  print('str', str)
+
+  fn.setreg(register.name, str, charwise)
+  fn.execute("normal! " .. count .. '"' .. register.name .. command)
+  fn.setreg(register.name, register.contents, register.type)
 end
 
 M.addBuffersToQfList = function()
@@ -66,11 +80,11 @@ local function cycleQfItem(a, b)
   if timer then
     timer:close()
   end
-  --
+
   if not pcall(cmd, a) then
     pcall(cmd, b)
   end
-  --
+
   timer = vim.defer_fn(function()
     cmd("cclose")
     timer = nil
@@ -86,14 +100,20 @@ end
 M.putCharwiseAfter = function()
   putCharwise("p")
 end
+M.putSpaceCharwiseAfter = function()
+  putCharwise("p", ' ')
+end
+M.putSpaceCharwiseBefore = function()
+  putCharwise("p", nil, ' ')
+end
 M.putCharwiseBefore = function()
   putCharwise("P")
 end
 M.putLinewiseAbove = function()
-  putLinewise("]P")
+  putLinewise("]P", nil, ',', "`]")
 end
 M.putLinewiseBelow = function()
-  putLinewise("]p")
+  putLinewise("]p", nil, ',', "`]")
 end
 M.setup = function(opts) end
 
