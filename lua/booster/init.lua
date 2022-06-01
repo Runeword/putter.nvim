@@ -6,7 +6,7 @@ local cmd = vim.cmd
 
 local M = {}
 
-local function putLinewise(command, prefix, suffix, mark)
+M.putLinewise = function(command, surround)
   local register = {}
   register.name = v.register
   register.contents = fn.getreg(register.name)
@@ -14,6 +14,14 @@ local function putLinewise(command, prefix, suffix, mark)
   local linewise = "V"
   local count = v.count1
   local str = ''
+  local prefix
+  local suffix
+
+  if (surround) then
+    local input = fn.getcharstr()
+    prefix = input
+    suffix = input
+  end
 
   -- if register.type ~= linewise then
 
@@ -21,16 +29,30 @@ local function putLinewise(command, prefix, suffix, mark)
   str = (prefix or '') .. register.contents .. (suffix or '')
 
   fn.setreg(register.name, str, linewise)
-  fn.execute("normal! " .. count .. '"' .. register.name .. command .. (mark or ''))
+  fn.execute("normal! " .. count .. '"' .. register.name .. command)
   fn.setreg(register.name, register.contents, register.type)
 end
 
-local function putCharwise(command, prefix, suffix)
+M.putCharwise = function(command, surround)
   local linewise = "V"
   local charwise = "v"
   local count = v.count1
   local register = {}
   local str = ''
+  local prefix
+  local suffix
+
+  -- fn.inputsave()
+  -- local input = fn.input('> ')
+  -- prefix = input
+  -- suffix = input
+  -- fn.inputrestore()
+
+  if (surround) then
+    local input = fn.getcharstr()
+    prefix = input
+    suffix = input
+  end
 
   register.name = v.register
   register.type = fn.getregtype(register.name)
@@ -45,7 +67,6 @@ local function putCharwise(command, prefix, suffix)
 
   -- Add prefix and suffix
   str = (prefix or '') .. str .. (suffix or '')
-  print('str', str)
 
   fn.setreg(register.name, str, charwise)
   fn.execute("normal! " .. count .. '"' .. register.name .. command)
@@ -97,24 +118,7 @@ end
 M.cyclePrevQfItem = function()
   cycleQfItem("cprev", "clast")
 end
-M.putCharwiseAfter = function()
-  putCharwise("p")
-end
-M.putSpaceCharwiseAfter = function()
-  putCharwise("p", ' ')
-end
-M.putSpaceCharwiseBefore = function()
-  putCharwise("p", nil, ' ')
-end
-M.putCharwiseBefore = function()
-  putCharwise("P")
-end
-M.putLinewiseAbove = function()
-  putLinewise("]P", nil, ',', "`]")
-end
-M.putLinewiseBelow = function()
-  putLinewise("]p", nil, ',', "`]")
-end
+
 M.setup = function(opts) end
 
 return M
