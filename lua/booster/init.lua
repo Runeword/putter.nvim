@@ -35,13 +35,18 @@ M.putLinewise = function(command, surround)
   end
 end
 
-M.putCharwise = function(command, prefix, suffix)
+M.putCharwise = function(command, prepend, append)
   return function()
     local linewise = "V"
     local charwise = "v"
     local count = v.count1
     local register = {}
     local str = ''
+    local prefix = ''
+    local suffix = ''
+    local char = {
+      [''] = true,
+    }
 
     -- fn.inputsave()
     -- local input = fn.input('> ')
@@ -49,13 +54,16 @@ M.putCharwise = function(command, prefix, suffix)
     -- suffix = input
     -- fn.inputrestore()
 
-    if (prefix and suffix) then
-      local input = fn.getcharstr()
-      prefix = input
-      suffix = input
-    elseif (prefix) then prefix = fn.getcharstr()
-    elseif (suffix) then suffix = fn.getcharstr()
+    local status, input = pcall(fn.getcharstr)
+    if (not status or char[input]) then return end
+
+    if (prepend and append) then prefix, suffix = input, input
+    elseif (prepend) then prefix = input
+    elseif (append) then suffix = input
     end
+
+    if (prefix == ',') then prefix = ', ' end
+    if (suffix == ',') then suffix = ', ' end
 
     register.name = v.register
     register.type = fn.getregtype(register.name)
