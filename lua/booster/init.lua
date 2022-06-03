@@ -40,25 +40,23 @@ M.putCharwise = function(command, hasPrefix, hasSuffix)
     local linewise = "V"
     local charwise = "v"
     local count = v.count1
-    local str = ''
-    local prefix = ''
-    local suffix = ''
+    local str, prefix, suffix = '', '', ''
 
     -- Prompt for user input
     if (hasPrefix or hasSuffix) then
       local exitKeys = {
         [''] = true,
       }
-      local hasNoErrors, input = pcall(fn.getcharstr)
-      if (not hasNoErrors or exitKeys[input]) then return end
+      local status, input = pcall(fn.getcharstr)
+      if (not status or exitKeys[input]) then return status end
 
-      if (hasPrefix and hasSuffix) then prefix, suffix = input, input
-      elseif (hasPrefix) then prefix = input
-      elseif (hasSuffix) then suffix = input
+      if hasPrefix and hasSuffix then prefix, suffix = input, input
+      elseif hasPrefix then prefix = input
+      elseif hasSuffix then suffix = input
       end
 
-      if (prefix == ',') then prefix = ', ' end
-      if (suffix == ',') then suffix = ', ' end
+      if prefix == ',' then prefix = ', ' end
+      if suffix == ',' then suffix = ', ' end
     end
 
     local register = {}
@@ -66,11 +64,9 @@ M.putCharwise = function(command, hasPrefix, hasSuffix)
     register.type = fn.getregtype(register.name)
     register.contents = fn.getreg(register.name)
 
-    if register.type == linewise then
-      -- Remove spaces at both extremities
-      str = string.gsub(register.contents, "^%s*(.-)%s*$", "%1")
-    else
-      str = register.contents
+    -- Remove spaces at both extremities
+    if register.type == linewise then str = string.gsub(register.contents, "^%s*(.-)%s*$", "%1")
+    else str = register.contents
     end
 
     -- Add prefix and suffix
