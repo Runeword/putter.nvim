@@ -35,26 +35,33 @@ M.putLinewise = function(command, surround)
   end
 end
 
+local function getPrefixSuffix(char)
+  local prefix, suffix
+  local openingChar = { ['('] = ')', ['['] = ']', ['{'] = '}', ['<'] = '>' }
+  local closingChar = { [')'] = '(', [']'] = '[', ['}'] = '{', ['>'] = '<' }
+
+  if openingChar[char] then prefix, suffix = char, openingChar[char]
+  elseif closingChar[char] then suffix, prefix = char, closingChar[char]
+  else prefix, suffix = char, char
+  end
+
+  return prefix, suffix
+end
+
 M.putCharwise = function(command, hasPrefix, hasSuffix)
   return function()
     local prefix, suffix = '', ''
 
     -- Prompt for user input
     if hasPrefix or hasSuffix then
-      local status, input = pcall(fn.getcharstr)
+      local status, inputChar = pcall(fn.getcharstr)
 
       local exitKeys = { [''] = true }
-      if not status or exitKeys[input] then return status end
+      if not status or exitKeys[inputChar] then return status end
 
-      if hasPrefix and hasSuffix then
-        local openingChar = { ['('] = ')', ['['] = ']', ['{'] = '}', ['<'] = '>' }
-        local closingChar = { [')'] = '(', [']'] = '[', ['}'] = '{', ['>'] = '<' }
-        if openingChar[input] then prefix, suffix = input, openingChar[input]
-        elseif closingChar[input] then suffix, prefix = input, closingChar[input]
-        else prefix, suffix = input, input
-        end
-      elseif hasPrefix then prefix = input
-      elseif hasSuffix then suffix = input
+      if hasPrefix and hasSuffix then prefix, suffix = getPrefixSuffix(inputChar)
+      elseif hasPrefix then prefix = inputChar
+      elseif hasSuffix then suffix = inputChar
       end
 
       if prefix == ',' then prefix = ', ' end
