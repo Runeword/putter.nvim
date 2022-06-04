@@ -37,20 +37,22 @@ end
 
 M.putCharwise = function(command, hasPrefix, hasSuffix)
   return function()
-    local linewise = "V"
-    local charwise = "v"
-    local count = v.count1
-    local str, prefix, suffix = '', '', ''
+    local prefix, suffix = '', ''
 
     -- Prompt for user input
-    if (hasPrefix or hasSuffix) then
-      local exitKeys = {
-        [''] = true,
-      }
+    if hasPrefix or hasSuffix then
       local status, input = pcall(fn.getcharstr)
-      if (not status or exitKeys[input]) then return status end
 
-      if hasPrefix and hasSuffix then prefix, suffix = input, input
+      local exitKeys = { [''] = true }
+      if not status or exitKeys[input] then return status end
+
+      if hasPrefix and hasSuffix then
+        local openingChar = { ['('] = ')', ['['] = ']', ['{'] = '}', ['<'] = '>' }
+        local closingChar = { [')'] = '(', [']'] = '[', ['}'] = '{', ['>'] = '<' }
+        if openingChar[input] then prefix, suffix = input, openingChar[input]
+        elseif closingChar[input] then suffix, prefix = input, closingChar[input]
+        else prefix, suffix = input, input
+        end
       elseif hasPrefix then prefix = input
       elseif hasSuffix then suffix = input
       end
@@ -58,6 +60,11 @@ M.putCharwise = function(command, hasPrefix, hasSuffix)
       if prefix == ',' then prefix = ', ' end
       if suffix == ',' then suffix = ', ' end
     end
+
+    local linewise = "V"
+    local charwise = "v"
+    local count = v.count1
+    local str = ''
 
     local register = {}
     register.name = v.register
