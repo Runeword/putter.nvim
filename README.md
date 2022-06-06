@@ -1,8 +1,13 @@
+-- Put linewise
 ```lua
 -- Put linewise below
 map({"n","x"}, "glp", require("booster").putLinewise("]p`]"))
 -- Put linewise above
 map({"n","x"}, "glP", require("booster").putLinewise("]P`]"))
+```
+
+- Put charwise
+```lua
 -- Put charwise after
 map({"n", "x"}, "p", require("booster").putCharwise("p"))
 -- Put charwise after + prefix
