@@ -35,39 +35,31 @@ M.putLinewise = function(command, surround)
   end
 end
 
-local function getPrefixSuffix(char)
-  local prefix, suffix
+local function getMatchingChars(char)
   local openingChar = { ['('] = ')', ['['] = ']', ['{'] = '}', ['<'] = '>' }
   local closingChar = { [')'] = '(', [']'] = '[', ['}'] = '{', ['>'] = '<' }
 
-  if openingChar[char] then prefix, suffix = char, openingChar[char]
-  elseif closingChar[char] then suffix, prefix = char, closingChar[char]
-  else prefix, suffix = char, char
+  if openingChar[char] then return char, openingChar[char]
+  elseif closingChar[char] then return char, closingChar[char]
+  else return char, char
+  end
+end
+
+local function getPrefixSuffix(inputChar, addPrefix, addSuffix)
+  local prefix, suffix = '', ''
+
+  if addPrefix and addSuffix then prefix, suffix = getMatchingChars(inputChar)
+  elseif addPrefix then prefix = inputChar
+  elseif addSuffix then suffix = inputChar
   end
 
+  if prefix == ',' then prefix = ', ' end
+  if suffix == ',' then suffix = ', ' end
   return prefix, suffix
 end
 
-M.putCharwise = function(command, hasPrefix, hasSuffix)
+M.putCharwise = function(command, addPrefix, addSuffix)
   return function()
-    local prefix, suffix = '', ''
-
-    -- Prompt for user input
-    if hasPrefix or hasSuffix then
-      local status, inputChar = pcall(fn.getcharstr)
-
-      local exitKeys = { [''] = true }
-      if not status or exitKeys[inputChar] then return status end
-
-      if hasPrefix and hasSuffix then prefix, suffix = getPrefixSuffix(inputChar)
-      elseif hasPrefix then prefix = inputChar
-      elseif hasSuffix then suffix = inputChar
-      end
-
-      if prefix == ',' then prefix = ', ' end
-      if suffix == ',' then suffix = ', ' end
-    end
-
     local linewise = "V"
     local charwise = "v"
     local count = v.count1
@@ -83,9 +75,18 @@ M.putCharwise = function(command, hasPrefix, hasSuffix)
     else str = register.contents
     end
 
-    -- Add prefix and suffix
-    str = (prefix or '') .. str .. (suffix or '')
+    if addPrefix or addSuffix then
+      -- Prompt for user input
+      local status, inputChar = pcall(fn.getcharstr)
+      local exitKeys = { [''] = true }
+      if not status or exitKeys[inputChar] then return status end
 
+      -- Add prefix and suffix
+      local prefix, suffix = getPrefixSuffix(inputChar, addPrefix, addSuffix)
+      str = (prefix or '') .. str .. (suffix or '')
+    end
+
+    -- Set register, put, reset register
     fn.setreg(register.name, str, charwise)
     fn.execute("normal! " .. count .. '"' .. register.name .. command)
     fn.setreg(register.name, register.contents, register.type)
