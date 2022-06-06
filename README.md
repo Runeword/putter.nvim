@@ -1,4 +1,4 @@
--- Put linewise
+Put linewise
 ```lua
 -- Put linewise below
 map({"n","x"}, "glp", require("booster").putLinewise("]p`]"))
@@ -6,7 +6,7 @@ map({"n","x"}, "glp", require("booster").putLinewise("]p`]"))
 map({"n","x"}, "glP", require("booster").putLinewise("]P`]"))
 ```
 
-- Put charwise
+Put charwise
 ```lua
 -- Put charwise after
 map({"n", "x"}, "p", require("booster").putCharwise("p"))
