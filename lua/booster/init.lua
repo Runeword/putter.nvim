@@ -6,33 +6,12 @@ local cmd = vim.cmd
 
 local M = {}
 
-M.putLinewise = function(command, surround)
-  return function()
-    local register = {}
-    register.name = v.register
-    register.contents = fn.getreg(register.name)
-    register.type = fn.getregtype(register.name)
-    local linewise = "V"
-    local count = v.count1
-    local str = ''
-    local prefix
-    local suffix
-
-    if (surround) then
-      local input = fn.getcharstr()
-      prefix = input
-      suffix = input
-    end
-
-    -- if register.type ~= linewise then
-
-    -- Add prefix and suffix
-    str = (prefix or '') .. register.contents .. (suffix or '')
-
-    fn.setreg(register.name, str, linewise)
-    fn.execute("normal! " .. count .. '"' .. register.name .. command)
-    fn.setreg(register.name, register.contents, register.type)
-  end
+local function getRegister()
+  local register = {}
+  register.name = v.register
+  register.contents = fn.getreg(register.name)
+  register.type = fn.getregtype(register.name)
+  return register
 end
 
 local function getMatchingChars(char)
@@ -45,12 +24,12 @@ local function getMatchingChars(char)
   end
 end
 
-local function getPrefixSuffix(inputChar, addPrefix, addSuffix)
+local function getPrefixSuffix(char, addPrefix, addSuffix)
   local prefix, suffix = '', ''
 
-  if addPrefix and addSuffix then prefix, suffix = getMatchingChars(inputChar)
-  elseif addPrefix then prefix = inputChar
-  elseif addSuffix then suffix = inputChar
+  if addPrefix and addSuffix then prefix, suffix = getMatchingChars(char)
+  elseif addPrefix then prefix = char
+  elseif addSuffix then suffix = char
   end
 
   if prefix == ',' then prefix = ', ' end
@@ -58,17 +37,39 @@ local function getPrefixSuffix(inputChar, addPrefix, addSuffix)
   return prefix, suffix
 end
 
+M.putLinewise = function(command, addPrefix, addSuffix)
+  return function()
+    local register = getRegister()
+    local linewise = "V"
+    local count = v.count1
+    local str = register.contents
+
+    -- if register.type ~= linewise then
+
+    if addPrefix or addSuffix then
+      -- Prompt for user input
+      local status, inputChar = pcall(fn.getcharstr)
+      local exitKeys = { [''] = true }
+      if not status or exitKeys[inputChar] then return status end
+
+      -- Add prefix and suffix
+      local prefix, suffix = getPrefixSuffix(inputChar, addPrefix, addSuffix)
+      str = (prefix or '') .. str .. (suffix or '')
+    end
+
+    fn.setreg(register.name, str, linewise)
+    fn.execute("normal! " .. count .. '"' .. register.name .. command)
+    fn.setreg(register.name, register.contents, register.type)
+  end
+end
+
 M.putCharwise = function(command, addPrefix, addSuffix)
   return function()
+    local register = getRegister()
     local linewise = "V"
     local charwise = "v"
     local count = v.count1
     local str = ''
-
-    local register = {}
-    register.name = v.register
-    register.type = fn.getregtype(register.name)
-    register.contents = fn.getreg(register.name)
 
     -- Remove spaces at both extremities
     if register.type == linewise then str = string.gsub(register.contents, "^%s*(.-)%s*$", "%1")
