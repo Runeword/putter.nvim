@@ -112,20 +112,13 @@ local function cycleQfItem(a, b)
   local lastWindow = fn.winnr("$")
 
   for i = 1, lastWindow do
-    if fn.getwinvar(i, "&syntax") == "qf" then
-      break
-    elseif i == lastWindow then
-      cmd("silent copen")
-    end
+    if fn.getwinvar(i, "&syntax") == "qf" then break
+    elseif i == lastWindow then cmd("silent copen") end
   end
 
-  if timer then
-    timer:close()
-  end
+  if timer then timer:close() end
 
-  if not pcall(cmd, a) then
-    pcall(cmd, b)
-  end
+  if not pcall(cmd, a) then pcall(cmd, b) end
 
   timer = vim.defer_fn(function()
     cmd("cclose")
