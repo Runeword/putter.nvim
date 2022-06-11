@@ -6,9 +6,9 @@ local cmd = vim.cmd
 
 local M = {}
 
-local function getRegister()
+local function getRegister(command)
   local register = {}
-  register.name = v.register
+  register.name = command:match('^"(.)') or v.register
   register.contents = fn.getreg(register.name)
   register.type = fn.getregtype(register.name)
   return register
@@ -39,12 +39,16 @@ end
 
 M.putLinewise = function(command, addPrefix, addSuffix)
   return function()
-    local register = getRegister()
+    local register = getRegister(command)
     local linewise = "V"
     local count = v.count1
     local str = register.contents
 
     -- if register.type ~= linewise then
+    -- print('register.contents', register.contents)
+    -- print('register.type', register.type)
+    -- print('register.name', register.name)
+    -- print('register', v.register)
 
     if addPrefix or addSuffix then
       -- Prompt for user input
@@ -65,7 +69,7 @@ end
 
 M.putCharwise = function(command, addPrefix, addSuffix)
   return function()
-    local register = getRegister()
+    local register = getRegister(command)
     local linewise = "V"
     local charwise = "v"
     local count = v.count1
