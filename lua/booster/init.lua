@@ -32,8 +32,6 @@ local function getPrefixSuffix(char, addPrefix, addSuffix)
   elseif addSuffix then suffix = char
   end
 
-  if prefix == ',' then prefix = ', ' end
-  if suffix == ',' then suffix = ', ' end
   return prefix, suffix
 end
 
@@ -58,8 +56,18 @@ M.putLinewise = function(command, addPrefix, addSuffix)
 
       -- Add prefix and suffix
       local prefix, suffix = getPrefixSuffix(inputChar, addPrefix, addSuffix)
-      str = (prefix or '') .. str .. (suffix or '')
+      if prefix == ',' then prefix = ', ' end
+
+      local lines = ''
+
+      for line in str:gmatch("[^\r\n]+") do
+        local spacesStart, chars, spacesEnd = line:match("^(%s*)(.-)(%s*)$")
+        lines = lines .. spacesStart .. prefix .. chars .. suffix .. spacesEnd
+      end
+
+      str = lines
     end
+
 
     fn.setreg(register.name, str, linewise)
     fn.execute("normal! " .. count .. '"' .. register.name .. command)
@@ -80,6 +88,10 @@ M.putCharwise = function(command, addPrefix, addSuffix)
     else str = register.contents
     end
 
+    -- print('register.name', register.name)
+    -- print('register.type', register.type)
+    -- print('register.content', register.contents)
+
     if addPrefix or addSuffix then
       -- Prompt for user input
       local status, inputChar = pcall(fn.getcharstr)
@@ -88,6 +100,8 @@ M.putCharwise = function(command, addPrefix, addSuffix)
 
       -- Add prefix and suffix
       local prefix, suffix = getPrefixSuffix(inputChar, addPrefix, addSuffix)
+      if prefix == ',' then prefix = ', ' end
+      if suffix == ',' then suffix = ', ' end
       str = (prefix or '') .. str .. (suffix or '')
     end
 
