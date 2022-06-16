@@ -62,7 +62,7 @@ M.putLinewise = function(command, addPrefix, addSuffix)
 
       for line in str:gmatch("[^\r\n]+") do
         local spacesStart, chars, spacesEnd = line:match("^(%s*)(.-)(%s*)$")
-        lines = lines .. spacesStart .. prefix .. chars .. suffix .. spacesEnd
+        lines = lines .. spacesStart .. prefix .. chars .. suffix .. spacesEnd .. '\n'
       end
 
       str = lines
