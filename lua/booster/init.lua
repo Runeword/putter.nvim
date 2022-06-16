@@ -19,7 +19,7 @@ local function getMatchingChars(char)
   local closingChar = { [')'] = '(', [']'] = '[', ['}'] = '{', ['>'] = '<' }
 
   if openingChar[char] then return char, openingChar[char]
-  elseif closingChar[char] then return char, closingChar[char]
+  elseif closingChar[char] then return closingChar[char], char
   else return char, char
   end
 end
@@ -84,7 +84,7 @@ M.putCharwise = function(command, addPrefix, addSuffix)
     local str = ''
 
     -- Remove spaces at both extremities
-    if register.type == linewise then str = string.gsub(register.contents, "^%s*(.-)%s*$", "%1")
+    if register.type == linewise then str = register.contents:gsub("^%s*(.-)%s*$", "%1")
     else str = register.contents
     end
 
