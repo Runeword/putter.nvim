@@ -58,12 +58,12 @@ M.putLinewise = function(command, addPrefix, addSuffix)
 
     if addPrefix or addSuffix then
       -- Prompt for user input
-      local status, inputChar = pcall(fn.getcharstr)
+      local status, key = pcall(fn.getcharstr)
       local exitKeys = { [''] = true }
-      if not status or exitKeys[inputChar] then return status end
+      if not status or exitKeys[key] then return status end
 
       -- Add prefix and suffix
-      local prefix, suffix = getPrefixSuffix(inputChar, addPrefix, addSuffix)
+      local prefix, suffix = getPrefixSuffix(key, addPrefix, addSuffix)
       if prefix == ',' then prefix = ', ' end
       str = getLines(str, prefix, suffix)
     end
@@ -91,12 +91,12 @@ M.putCharwise = function(command, addPrefix, addSuffix)
 
     if addPrefix or addSuffix then
       -- Prompt for user input
-      local status, inputChar = pcall(fn.getcharstr)
+      local status, key = pcall(fn.getcharstr)
       local exitKeys = { [''] = true }
-      if not status or exitKeys[inputChar] then return status end
+      if not status or exitKeys[key] then return status end
 
       -- Add prefix and suffix
-      local prefix, suffix = getPrefixSuffix(inputChar, addPrefix, addSuffix)
+      local prefix, suffix = getPrefixSuffix(key, addPrefix, addSuffix)
       if prefix == ',' then prefix = ', ' end
       if suffix == ',' then suffix = ', ' end
       str = (prefix or '') .. str .. (suffix or '')
