@@ -38,8 +38,6 @@ end
 M.putLinewise = function(command, addPrefix, addSuffix)
   return function()
     local register = getRegister(command)
-    local linewise = "V"
-    local count = v.count1
     local str = register.contents
 
     -- if register.type ~= linewise then
@@ -68,10 +66,9 @@ M.putLinewise = function(command, addPrefix, addSuffix)
       str = lines
     end
 
-
-    fn.setreg(register.name, str, linewise)
-    fn.execute("normal! " .. count .. '"' .. register.name .. command)
-    fn.setreg(register.name, register.contents, register.type)
+    fn.setreg(register.name, str, "V") -- Set register linewise
+    fn.execute("normal! " .. v.count1 .. '"' .. register.name .. command) -- Paste register
+    fn.setreg(register.name, register.contents, register.type) -- Restore register
   end
 end
 
@@ -79,8 +76,6 @@ M.putCharwise = function(command, addPrefix, addSuffix)
   return function()
     local register = getRegister(command)
     local linewise = "V"
-    local charwise = "v"
-    local count = v.count1
     local str = ''
 
     -- Remove spaces at both extremities
@@ -105,10 +100,9 @@ M.putCharwise = function(command, addPrefix, addSuffix)
       str = (prefix or '') .. str .. (suffix or '')
     end
 
-    -- Set register, put, reset register
-    fn.setreg(register.name, str, charwise)
-    fn.execute("normal! " .. count .. '"' .. register.name .. command)
-    fn.setreg(register.name, register.contents, register.type)
+    fn.setreg(register.name, str, "v") -- Set register charwise
+    fn.execute("normal! " .. v.count1 .. '"' .. register.name .. command) -- Paste register
+    fn.setreg(register.name, register.contents, register.type) -- Restore register
   end
 end
 
