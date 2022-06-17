@@ -24,6 +24,16 @@ local function getMatchingChars(char)
   end
 end
 
+local function getLines(str, prefix, suffix)
+  local lines = ''
+
+  for line in str:gmatch("[^\r\n]+") do
+    local spacesStart, chars, spacesEnd = line:match("^(%s*)(.-)(%s*)$")
+    lines = lines .. spacesStart .. prefix .. chars .. suffix .. spacesEnd .. '\n'
+  end
+  return lines
+end
+
 local function getPrefixSuffix(char, addPrefix, addSuffix)
   local prefix, suffix = '', ''
 
@@ -55,15 +65,7 @@ M.putLinewise = function(command, addPrefix, addSuffix)
       -- Add prefix and suffix
       local prefix, suffix = getPrefixSuffix(inputChar, addPrefix, addSuffix)
       if prefix == ',' then prefix = ', ' end
-
-      local lines = ''
-
-      for line in str:gmatch("[^\r\n]+") do
-        local spacesStart, chars, spacesEnd = line:match("^(%s*)(.-)(%s*)$")
-        lines = lines .. spacesStart .. prefix .. chars .. suffix .. spacesEnd .. '\n'
-      end
-
-      str = lines
+      str = getLines(str, prefix, suffix)
     end
 
     fn.setreg(register.name, str, "V") -- Set register linewise
