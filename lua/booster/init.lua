@@ -46,26 +46,82 @@ local function getPrefixSuffix(char, addPrefix, addSuffix)
 end
 
 local function pl(command, callback)
-    local register = getRegister(command)
-    local str = register.contents
+  local register = getRegister(command)
+  local str = register.contents
 
-    if callback then
-      -- Prompt for user input
-      local status, key = pcall(fn.getcharstr)
-      local exitKeys = { [''] = true }
-      if not status or exitKeys[key] then return status end
+  if callback then
+    -- Prompt for user input
+    local status, key = pcall(fn.getcharstr)
+    local exitKeys = { [''] = true }
+    if not status or exitKeys[key] then return status end
 
-      str = callback(str, key)
-    end
+    str = callback(str, key)
+  end
 
-    fn.setreg(register.name, str, "V") -- Set register linewise
-    fn.execute("normal! " .. v.count1 .. '"' .. register.name .. command) -- Paste register
-    fn.setreg(register.name, register.contents, register.type) -- Restore register
+  fn.setreg(register.name, str, "V") -- Set register linewise
+  fn.execute("normal! " .. v.count1 .. '"' .. register.name .. command) -- Paste register
+  fn.setreg(register.name, register.contents, register.type) -- Restore register
+end
+
+local function pc(command, callback)
+  local register = getRegister(command)
+  local linewise = "V"
+  local str = ''
+
+  -- Remove spaces at both extremities
+  if register.type == linewise then str = register.contents:gsub("^%s*(.-)%s*$", "%1")
+  else str = register.contents
+  end
+
+  if callback then
+    -- Prompt for user input
+    local status, key = pcall(fn.getcharstr)
+    local exitKeys = { [''] = true }
+    if not status or exitKeys[key] then return status end
+
+    str = callback(str, key)
+    -- Add prefix and suffix
+    -- local prefix, suffix = getPrefixSuffix(key, addPrefix, addSuffix)
+    -- if prefix == ',' then prefix = ', ' end
+    -- if suffix == ',' then suffix = ', ' end
+    -- str = (prefix or '') .. str .. (suffix or '')
+  end
+
+  fn.setreg(register.name, str, "v") -- Set register charwise
+  fn.execute("normal! " .. v.count1 .. '"' .. register.name .. command) -- Paste register
+  fn.setreg(register.name, register.contents, register.type) -- Restore register
 end
 
 local function addPrefix(str, key) return getLines(str, key) end
+
 local function addSuffix(str, key) return getLines(str, nil, key) end
+
 local function addSurround(str, key) return getLines(str, getMatchingChars(key)) end
+
+local function addcPrefix(str, key) return (key or '') .. str end
+
+local function addcSuffix(str, key) return str .. (key or '') end
+
+local function addcSurround(str, key)
+  local prefix, suffix = getMatchingChars(key)
+  return (prefix or '') .. str .. (suffix or '')
+end
+
+M.putCharwise = function(command)
+  return function() pc(command) end
+end
+
+M.putCharwisePrefix = function(command)
+  return function() pc(command, addcPrefix) end
+end
+
+M.putCharwiseSuffix = function(command)
+  return function() pc(command, addcSuffix) end
+end
+
+M.putCharwiseSurround = function(command)
+  return function() pc(command, addcSurround) end
+end
 
 M.putLinewise = function(command)
   return function() pl(command) end
@@ -106,35 +162,35 @@ end
 --   end
 -- end
 
-M.putCharwise = function(command, addPrefix, addSuffix)
-  return function()
-    local register = getRegister(command)
-    local linewise = "V"
-    local str = ''
-
-    -- Remove spaces at both extremities
-    if register.type == linewise then str = register.contents:gsub("^%s*(.-)%s*$", "%1")
-    else str = register.contents
-    end
-
-    if addPrefix or addSuffix then
-      -- Prompt for user input
-      local status, key = pcall(fn.getcharstr)
-      local exitKeys = { [''] = true }
-      if not status or exitKeys[key] then return status end
-
-      -- Add prefix and suffix
-      local prefix, suffix = getPrefixSuffix(key, addPrefix, addSuffix)
-      if prefix == ',' then prefix = ', ' end
-      if suffix == ',' then suffix = ', ' end
-      str = (prefix or '') .. str .. (suffix or '')
-    end
-
-    fn.setreg(register.name, str, "v") -- Set register charwise
-    fn.execute("normal! " .. v.count1 .. '"' .. register.name .. command) -- Paste register
-    fn.setreg(register.name, register.contents, register.type) -- Restore register
-  end
-end
+-- M.putCharwise = function(command, addPrefix, addSuffix)
+--   return function()
+--     local register = getRegister(command)
+--     local linewise = "V"
+--     local str = ''
+--
+--     -- Remove spaces at both extremities
+--     if register.type == linewise then str = register.contents:gsub("^%s*(.-)%s*$", "%1")
+--     else str = register.contents
+--     end
+--
+--     if addPrefix or addSuffix then
+--       -- Prompt for user input
+--       local status, key = pcall(fn.getcharstr)
+--       local exitKeys = { [''] = true }
+--       if not status or exitKeys[key] then return status end
+--
+--       -- Add prefix and suffix
+--       local prefix, suffix = getPrefixSuffix(key, addPrefix, addSuffix)
+--       if prefix == ',' then prefix = ', ' end
+--       if suffix == ',' then suffix = ', ' end
+--       str = (prefix or '') .. str .. (suffix or '')
+--     end
+--
+--     fn.setreg(register.name, str, "v") -- Set register charwise
+--     fn.execute("normal! " .. v.count1 .. '"' .. register.name .. command) -- Paste register
+--     fn.setreg(register.name, register.contents, register.type) -- Restore register
+--   end
+-- end
 
 M.addBuffersToQfList = function()
   local lastBuffer = fn.bufnr("$")
