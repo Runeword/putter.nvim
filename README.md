@@ -1,17 +1,11 @@
 Put linewise
 ```lua
--- Put linewise below
-vim.keymap.set({"n","x"}, "glp", require("booster").putLinewise("]p`]"))
--- Put linewise above
-vim.keymap.set({"n","x"}, "glP", require("booster").putLinewise("]P`]"))
--- Put linewise below + suffix
-vim.keymap.set({"n","x"}, "gllp", require("booster").putLinewise(']p`]', nil, true))
--- Put linewise above + suffix
-vim.keymap.set({"n","x"}, "gllP", require("booster").putLinewise(']P`]', nil, true))
--- Put linewise below + surround
-vim.keymap.set({"n","x"}, "glsp", require("booster").putLinewise(']p`]', true, true))
--- Put linewise above + surround
-vim.keymap.set({"n","x"}, "glsP", require("booster").putLinewise(']P`]', true, true))
+vim.keymap.set({"n","x"}, "glp", require("booster").putLinewise(']p`]'))
+vim.keymap.set({"n","x"}, "glP", require("booster").putLinewise(']P`]'))
+vim.keymap.set({"n","x"}, "gllp", require("booster").putLinewiseSuffix(']p`]'))
+vim.keymap.set({"n","x"}, "gllP", require("booster").putLinewiseSuffix(']P`]'))
+vim.keymap.set({"n","x"}, "glsp", require("booster").putLinewiseSurround(']p`]'))
+vim.keymap.set({"n","x"}, "glsP", require("booster").putLinewiseSurround(']P`]'))
 ```
 
 Put charwise
