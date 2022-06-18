@@ -29,7 +29,7 @@ local function getLines(str, prefix, suffix)
 
   for line in str:gmatch("[^\r\n]+") do
     local spacesStart, chars, spacesEnd = line:match("^(%s*)(.-)(%s*)$")
-    lines = lines .. spacesStart .. prefix .. chars .. suffix .. spacesEnd .. '\n'
+    lines = lines .. spacesStart .. (prefix or '') .. chars .. (suffix or '') .. spacesEnd .. '\n'
   end
   return lines
 end
@@ -45,34 +45,66 @@ local function getPrefixSuffix(char, addPrefix, addSuffix)
   return prefix, suffix
 end
 
-M.putLinewise = function(command, addPrefix, addSuffix)
-  return function()
+local function pl(command, callback)
     local register = getRegister(command)
     local str = register.contents
 
-    -- if register.type ~= linewise then
-    -- print('register.contents', register.contents)
-    -- print('register.type', register.type)
-    -- print('register.name', register.name)
-    -- print('register', v.register)
-
-    if addPrefix or addSuffix then
+    if callback then
       -- Prompt for user input
       local status, key = pcall(fn.getcharstr)
       local exitKeys = { [''] = true }
       if not status or exitKeys[key] then return status end
 
-      -- Add prefix and suffix
-      local prefix, suffix = getPrefixSuffix(key, addPrefix, addSuffix)
-      if prefix == ',' then prefix = ', ' end
-      str = getLines(str, prefix, suffix)
+      str = callback(str, key)
     end
 
     fn.setreg(register.name, str, "V") -- Set register linewise
     fn.execute("normal! " .. v.count1 .. '"' .. register.name .. command) -- Paste register
     fn.setreg(register.name, register.contents, register.type) -- Restore register
-  end
 end
+
+local function addPrefix(str, key) return getLines(str, key) end
+local function addSuffix(str, key) return getLines(str, nil, key) end
+local function addSurround(str, key) return getLines(str, getMatchingChars(key)) end
+
+M.putLinewise = function(command)
+  return function() pl(command) end
+end
+
+M.putLinewisePrefix = function(command)
+  return function() pl(command, addPrefix) end
+end
+
+M.putLinewiseSuffix = function(command)
+  return function() pl(command, addSuffix) end
+end
+
+M.putLinewiseSurround = function(command)
+  return function() pl(command, addSurround) end
+end
+
+-- M.putLinewise = function(command, addPrefix, addSuffix)
+--   return function()
+--     local register = getRegister(command)
+--     local str = register.contents
+--
+--     if addPrefix or addSuffix then
+--       -- Prompt for user input
+--       local status, key = pcall(fn.getcharstr)
+--       local exitKeys = { [''] = true }
+--       if not status or exitKeys[key] then return status end
+--
+--       -- Add prefix and suffix
+--       local prefix, suffix = getPrefixSuffix(key, addPrefix, addSuffix)
+--       if prefix == ',' then prefix = ', ' end
+--       str = getLines(str, prefix, suffix)
+--     end
+--
+--     fn.setreg(register.name, str, "V") -- Set register linewise
+--     fn.execute("normal! " .. v.count1 .. '"' .. register.name .. command) -- Paste register
+--     fn.setreg(register.name, register.contents, register.type) -- Restore register
+--   end
+-- end
 
 M.putCharwise = function(command, addPrefix, addSuffix)
   return function()
@@ -84,10 +116,6 @@ M.putCharwise = function(command, addPrefix, addSuffix)
     if register.type == linewise then str = register.contents:gsub("^%s*(.-)%s*$", "%1")
     else str = register.contents
     end
-
-    -- print('register.name', register.name)
-    -- print('register.type', register.type)
-    -- print('register.content', register.contents)
 
     if addPrefix or addSuffix then
       -- Prompt for user input
