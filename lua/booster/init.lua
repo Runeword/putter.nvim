@@ -16,7 +16,7 @@ local function getRegister(command)
   return register
 end
 
-local chars = {
+local surround = {
   [')'] = { '(', ')' },
   ['('] = { '(', ')' },
   [']'] = { '[', ']' },
@@ -24,12 +24,25 @@ local chars = {
   ['}'] = { '{', '}' },
   ['{'] = { '{', '}' },
   ['>'] = { '<', '>' },
-  ['<'] = { '<', '>' }
+  ['<'] = { '<', '>' },
+  [','] = { ', ', ',' }
+}
+
+local prefix = {
+  [','] = ', '
+}
+
+local suffix = {
+  [','] = ', '
 }
 
 local opts = {
-  putLinewiseSurround = { chars = chars },
-  putCharwiseSurround = { chars = chars },
+  putLinewiseSurround = { chars = surround },
+  putCharwiseSurround = { chars = surround },
+  putLinewisePrefix = { chars = prefix },
+  putCharwisePrefix = { chars = prefix },
+  putLinewiseSuffix = { chars = suffix },
+  putCharwiseSuffix = { chars = suffix },
 }
 
 local function getLines(str, prefix, suffix)
@@ -52,6 +65,7 @@ local function pl(command, callback)
     local exitKeys = { [''] = true }
     if not status or exitKeys[key] then return status end
 
+    -- Add prefix and suffix
     str = callback(str, key)
   end
 
@@ -76,12 +90,8 @@ local function pc(command, callback)
     local exitKeys = { [''] = true }
     if not status or exitKeys[key] then return status end
 
-    str = callback(str, key)
     -- Add prefix and suffix
-    -- local prefix, suffix = getPrefixSuffix(key, addPrefix, addSuffix)
-    -- if prefix == ',' then prefix = ', ' end
-    -- if suffix == ',' then suffix = ', ' end
-    -- str = (prefix or '') .. str .. (suffix or '')
+    str = callback(str, key)
   end
 
   fn.setreg(register.name, str, "v") -- Set register charwise
@@ -93,13 +103,16 @@ local function addPrefix(str, key) return getLines(str, key) end
 
 local function addSuffix(str, key) return getLines(str, nil, key) end
 
-local function addcPrefix(str, key) return (key or '') .. str end
+local function addcPrefix(str, key)
+  return (opts.putCharwisePrefix.chars[key] or key) .. str
+end
 
-local function addcSuffix(str, key) return str .. (key or '') end
+local function addcSuffix(str, key)
+  return str .. (opts.putCharwiseSuffix.chars[key] or key)
+end
 
 local function addSurround(str, key)
-  local prefix, suffix = unpack(opts.putLinewiseSurround.chars[key] or {})
-  return getLines(str, prefix, suffix)
+  return getLines(str, unpack(opts.putLinewiseSurround.chars[key] or {}))
 end
 
 local function addcSurround(str, key)
