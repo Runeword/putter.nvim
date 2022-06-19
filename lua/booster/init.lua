@@ -32,10 +32,6 @@ local opts = {
   putCharwiseSurround = { chars = chars },
 }
 
-local function getPrefixSuffix(key, chars)
-  if chars[key] then return unpack(chars[key]) end
-end
-
 local function getLines(str, prefix, suffix)
   local lines = ''
 
@@ -102,11 +98,12 @@ local function addcPrefix(str, key) return (key or '') .. str end
 local function addcSuffix(str, key) return str .. (key or '') end
 
 local function addSurround(str, key)
-  return getLines(str, getPrefixSuffix(key, opts.putLinewiseSurround.chars))
+  local prefix, suffix = unpack(opts.putLinewiseSurround.chars[key] or {})
+  return getLines(str, prefix, suffix)
 end
 
 local function addcSurround(str, key)
-  local prefix, suffix = getPrefixSuffix(key, opts.putCharwiseSurround.chars)
+  local prefix, suffix = unpack(opts.putCharwiseSurround.chars[key] or {})
   return (prefix or '') .. str .. (suffix or '')
 end
 
