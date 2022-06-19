@@ -6,6 +6,8 @@ local cmd = vim.cmd
 
 local M = {}
 
+-- M.setup = function(opts) end
+
 local function getRegister(command)
   local register = {}
   register.name = command:match('^"(.)') or v.register
@@ -14,14 +16,24 @@ local function getRegister(command)
   return register
 end
 
-local function getMatchingChars(char)
-  local openingChar = { ['('] = ')', ['['] = ']', ['{'] = '}', ['<'] = '>' }
-  local closingChar = { [')'] = '(', [']'] = '[', ['}'] = '{', ['>'] = '<' }
+local chars = {
+  [')'] = { '(', ')' },
+  ['('] = { '(', ')' },
+  [']'] = { '[', ']' },
+  ['['] = { '[', ']' },
+  ['}'] = { '{', '}' },
+  ['{'] = { '{', '}' },
+  ['>'] = { '<', '>' },
+  ['<'] = { '<', '>' }
+}
 
-  if openingChar[char] then return char, openingChar[char]
-  elseif closingChar[char] then return closingChar[char], char
-  else return char, char
-  end
+local opts = {
+  putLinewiseSurround = { chars = chars },
+  putCharwiseSurround = { chars = chars },
+}
+
+local function getPrefixSuffix(key, chars)
+  if chars[key] then return unpack(chars[key]) end
 end
 
 local function getLines(str, prefix, suffix)
@@ -32,17 +44,6 @@ local function getLines(str, prefix, suffix)
     lines = lines .. spacesStart .. (prefix or '') .. chars .. (suffix or '') .. spacesEnd .. '\n'
   end
   return lines
-end
-
-local function getPrefixSuffix(char, addPrefix, addSuffix)
-  local prefix, suffix = '', ''
-
-  if addPrefix and addSuffix then prefix, suffix = getMatchingChars(char)
-  elseif addPrefix then prefix = char
-  elseif addSuffix then suffix = char
-  end
-
-  return prefix, suffix
 end
 
 local function pl(command, callback)
@@ -96,14 +97,16 @@ local function addPrefix(str, key) return getLines(str, key) end
 
 local function addSuffix(str, key) return getLines(str, nil, key) end
 
-local function addSurround(str, key) return getLines(str, getMatchingChars(key)) end
-
 local function addcPrefix(str, key) return (key or '') .. str end
 
 local function addcSuffix(str, key) return str .. (key or '') end
 
+local function addSurround(str, key)
+  return getLines(str, getPrefixSuffix(key, opts.putLinewiseSurround.chars))
+end
+
 local function addcSurround(str, key)
-  local prefix, suffix = getMatchingChars(key)
+  local prefix, suffix = getPrefixSuffix(key, opts.putCharwiseSurround.chars)
   return (prefix or '') .. str .. (suffix or '')
 end
 
@@ -230,7 +233,5 @@ end
 M.cyclePrevQfItem = function()
   cycleQfItem("cprev", "clast")
 end
-
-M.setup = function(opts) end
 
 return M
