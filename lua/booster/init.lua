@@ -78,7 +78,7 @@ local function pl(command, callback)
   fn.setreg(register.name, register.contents, register.type) -- Restore register
 end
 
-local function pc(command, callback)
+local function putCharwise(command, callback)
   local register = getRegister(command)
   local linewise = "V"
   local str = ''
@@ -101,12 +101,12 @@ local function pc(command, callback)
 end
 
 M.putCharwise = function(command)
-  return function() pc(command) end
+  return function() putCharwise(command) end
 end
 
 M.putCharwisePrefix = function(command)
   return function()
-    pc(command, function(str)
+    putCharwise(command, function(str)
       local key = getKey()
       return (opts.putCharwisePrefix.chars[key] or key) .. str
     end)
@@ -115,7 +115,7 @@ end
 
 M.putCharwiseSuffix = function(command)
   return function()
-    pc(command, function(str)
+    putCharwise(command, function(str)
       local key = getKey()
       return str .. (opts.putCharwiseSuffix.chars[key] or key)
     end)
@@ -124,7 +124,7 @@ end
 
 M.putCharwiseSurround = function(command)
   return function()
-    pc(command, function(str)
+    putCharwise(command, function(str)
       local key = getKey()
       local prefix, suffix = unpack(opts.putCharwiseSurround.chars[key] or { key, key })
       return (prefix or '') .. str .. (suffix or '')
