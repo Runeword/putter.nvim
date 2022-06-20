@@ -100,51 +100,36 @@ local function pc(command, callback)
   fn.setreg(register.name, register.contents, register.type) -- Restore register
 end
 
--- local function addPrefix(str)
--- local key = getKey()
---   return getLines(str, unpack(opts.putLinewisePrefix.chars[key] or key)
--- end
-
--- local function addSuffix(str)
---   local key = getKey()
---   return getLines(str, nil, unpack(opts.putLinewiseSuffix.chars[key] or key)
--- end
-
--- local function addSurround(str)
---   local key = getKey()
---   return getLines(str, unpack(opts.putLinewiseSurround.chars[key] or { key, key }))
--- end
-
-local function addcPrefix(str)
-  local key = getKey()
-  return (opts.putCharwisePrefix.chars[key] or key) .. str
-end
-
-local function addcSuffix(str)
-  local key = getKey()
-  return str .. (opts.putCharwiseSuffix.chars[key] or key)
-end
-
-local function addcSurround(str)
-  local key = getKey()
-  local prefix, suffix = unpack(opts.putCharwiseSurround.chars[key] or { key, key })
-  return (prefix or '') .. str .. (suffix or '')
-end
-
 M.putCharwise = function(command)
   return function() pc(command) end
 end
 
 M.putCharwisePrefix = function(command)
-  return function() pc(command, addcPrefix) end
+  return function()
+    pc(command, function(str)
+      local key = getKey()
+      return (opts.putCharwisePrefix.chars[key] or key) .. str
+    end)
+  end
 end
 
 M.putCharwiseSuffix = function(command)
-  return function() pc(command, addcSuffix) end
+  return function()
+    pc(command, function(str)
+      local key = getKey()
+      return str .. (opts.putCharwiseSuffix.chars[key] or key)
+    end)
+  end
 end
 
 M.putCharwiseSurround = function(command)
-  return function() pc(command, addcSurround) end
+  return function()
+    pc(command, function(str)
+      local key = getKey()
+      local prefix, suffix = unpack(opts.putCharwiseSurround.chars[key] or { key, key })
+      return (prefix or '') .. str .. (suffix or '')
+    end)
+  end
 end
 
 M.putLinewise = function(command)
@@ -177,59 +162,6 @@ M.putLinewiseSurround = function(command)
     end)
   end
 end
-
--- M.putLinewise = function(command, addPrefix, addSuffix)
---   return function()
---     local register = getRegister(command)
---     local str = register.contents
---
---     if addPrefix or addSuffix then
---       -- Prompt for user input
---       local status, key = pcall(fn.getcharstr)
---       local exitKeys = { [''] = true }
---       if not status or exitKeys[key] then return status end
---
---       -- Add prefix and suffix
---       local prefix, suffix = getPrefixSuffix(key, addPrefix, addSuffix)
---       if prefix == ',' then prefix = ', ' end
---       str = getLines(str, prefix, suffix)
---     end
---
---     fn.setreg(register.name, str, "V") -- Set register linewise
---     fn.execute("normal! " .. v.count1 .. '"' .. register.name .. command) -- Paste register
---     fn.setreg(register.name, register.contents, register.type) -- Restore register
---   end
--- end
-
--- M.putCharwise = function(command, addPrefix, addSuffix)
---   return function()
---     local register = getRegister(command)
---     local linewise = "V"
---     local str = ''
---
---     -- Remove spaces at both extremities
---     if register.type == linewise then str = register.contents:gsub("^%s*(.-)%s*$", "%1")
---     else str = register.contents
---     end
---
---     if addPrefix or addSuffix then
---       -- Prompt for user input
---       local status, key = pcall(fn.getcharstr)
---       local exitKeys = { [''] = true }
---       if not status or exitKeys[key] then return status end
---
---       -- Add prefix and suffix
---       local prefix, suffix = getPrefixSuffix(key, addPrefix, addSuffix)
---       if prefix == ',' then prefix = ', ' end
---       if suffix == ',' then suffix = ', ' end
---       str = (prefix or '') .. str .. (suffix or '')
---     end
---
---     fn.setreg(register.name, str, "v") -- Set register charwise
---     fn.execute("normal! " .. v.count1 .. '"' .. register.name .. command) -- Paste register
---     fn.setreg(register.name, register.contents, register.type) -- Restore register
---   end
--- end
 
 M.addBuffersToQfList = function()
   local lastBuffer = fn.bufnr("$")
