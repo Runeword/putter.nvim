@@ -8,13 +8,6 @@ local M = {}
 
 -- M.setup = function(opts) end
 
-local function getKey()
-  local key = fn.getcharstr() -- Prompt for user input
-  local exitKeys = { [''] = true }
-  if exitKeys[key] then error() end
-  return key
-end
-
 local function getRegister(command)
   local register = {}
   register.name = command:match('^"(.)') or v.register
@@ -44,13 +37,25 @@ local suffix = {
 }
 
 local opts = {
-  putLinewiseSurround = { chars = surround },
-  putCharwiseSurround = { chars = surround },
-  putLinewisePrefix = { chars = prefix },
-  putCharwisePrefix = { chars = prefix },
-  putLinewiseSuffix = { chars = suffix },
-  putCharwiseSuffix = { chars = suffix },
+  ['putLinewiseSurround'] = { chars = surround },
+  ['putCharwiseSurround'] = { chars = surround },
+  ['putLinewisePrefix'] = { chars = prefix },
+  ['putCharwisePrefix'] = { chars = prefix },
+  ['putLinewiseSuffix'] = { chars = suffix },
+  ['putCharwiseSuffix'] = { chars = suffix },
 }
+
+local function getChars(optKey)
+  local key = fn.getcharstr() -- Prompt for user input
+  local exitKeys = { [''] = true }
+  if exitKeys[key] then error() end
+  local chars = opts[optKey].chars[key]
+  if optKey == 'putLinewiseSurround' or optKey == 'putCharwiseSurround' then
+    return unpack(chars or { key, key })
+  else
+    return unpack(chars or { key })
+  end
+end
 
 local function getLines(str, prefix, suffix)
   local lines = ''
@@ -70,7 +75,7 @@ local function putLinewise(command, callback)
     -- Add prefix and suffix
     local status
     status, str = pcall(callback, str)
-    if not status then return end
+    if not status then print('str', str) end
   end
 
   fn.setreg(register.name, str, "V") -- Set register linewise
@@ -107,8 +112,7 @@ end
 M.putCharwisePrefix = function(command)
   return function()
     putCharwise(command, function(str)
-      local key = getKey()
-      return (opts.putCharwisePrefix.chars[key] or key) .. str
+      return getChars('putCharwisePrefix') .. str
     end)
   end
 end
@@ -116,8 +120,7 @@ end
 M.putCharwiseSuffix = function(command)
   return function()
     putCharwise(command, function(str)
-      local key = getKey()
-      return str .. (opts.putCharwiseSuffix.chars[key] or key)
+      return str .. getChars('putCharwiseSuffix')
     end)
   end
 end
@@ -125,8 +128,7 @@ end
 M.putCharwiseSurround = function(command)
   return function()
     putCharwise(command, function(str)
-      local key = getKey()
-      local prefix, suffix = unpack(opts.putCharwiseSurround.chars[key] or { key, key })
+      local prefix, suffix = getChars('putCharwiseSurround')
       return (prefix or '') .. str .. (suffix or '')
     end)
   end
@@ -139,8 +141,7 @@ end
 M.putLinewisePrefix = function(command)
   return function()
     putLinewise(command, function(str)
-      local key = getKey()
-      return getLines(str, unpack(opts.putLinewisePrefix.chars[key] or { key }))
+      return getLines(str, getChars('putLinewisePrefix'))
     end)
   end
 end
@@ -148,8 +149,7 @@ end
 M.putLinewiseSuffix = function(command)
   return function()
     putLinewise(command, function(str)
-      local key = getKey()
-      return getLines(str, nil, unpack(opts.putLinewiseSuffix.chars[key] or { key }))
+      return getLines(str, nil, getChars('putLinewiseSuffix'))
     end)
   end
 end
@@ -157,8 +157,7 @@ end
 M.putLinewiseSurround = function(command)
   return function()
     putLinewise(command, function(str)
-      local key = getKey()
-      return getLines(str, unpack(opts.putLinewiseSurround.chars[key] or { key, key }))
+      return getLines(str, getChars('putLinewiseSurround'))
     end)
   end
 end
