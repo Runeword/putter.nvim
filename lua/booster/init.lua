@@ -100,13 +100,20 @@ local function pc(command, callback)
   fn.setreg(register.name, register.contents, register.type) -- Restore register
 end
 
-local function addPrefix(str)
-  return getLines(str, getKey())
-end
+-- local function addPrefix(str)
+-- local key = getKey()
+--   return getLines(str, unpack(opts.putLinewisePrefix.chars[key] or key)
+-- end
 
-local function addSuffix(str)
-  return getLines(str, nil, getKey())
-end
+-- local function addSuffix(str)
+--   local key = getKey()
+--   return getLines(str, nil, unpack(opts.putLinewiseSuffix.chars[key] or key)
+-- end
+
+-- local function addSurround(str)
+--   local key = getKey()
+--   return getLines(str, unpack(opts.putLinewiseSurround.chars[key] or { key, key }))
+-- end
 
 local function addcPrefix(str)
   local key = getKey()
@@ -114,13 +121,8 @@ local function addcPrefix(str)
 end
 
 local function addcSuffix(str)
-local key = getKey()
-  return str .. (opts.putCharwiseSuffix.chars[key] or key)
-end
-
-local function addSurround(str)
   local key = getKey()
-  return getLines(str, unpack(opts.putLinewiseSurround.chars[key] or { key, key }))
+  return str .. (opts.putCharwiseSuffix.chars[key] or key)
 end
 
 local function addcSurround(str)
@@ -150,15 +152,30 @@ M.putLinewise = function(command)
 end
 
 M.putLinewisePrefix = function(command)
-  return function() pl(command, addPrefix) end
+  return function()
+    pl(command, function(str)
+      local key = getKey()
+      return getLines(str, unpack(opts.putLinewisePrefix.chars[key] or { key }))
+    end)
+  end
 end
 
 M.putLinewiseSuffix = function(command)
-  return function() pl(command, addSuffix) end
+  return function()
+    pl(command, function(str)
+      local key = getKey()
+      return getLines(str, nil, unpack(opts.putLinewiseSuffix.chars[key] or { key }))
+    end)
+  end
 end
 
 M.putLinewiseSurround = function(command)
-  return function() pl(command, addSurround) end
+  return function()
+    pl(command, function(str)
+      local key = getKey()
+      return getLines(str, unpack(opts.putLinewiseSurround.chars[key] or { key, key }))
+    end)
+  end
 end
 
 -- M.putLinewise = function(command, addPrefix, addSuffix)
