@@ -45,16 +45,11 @@ local opts = {
   ['putCharwiseSuffix'] = { chars = suffix },
 }
 
-local function getChars(optKey)
+local function getPrefixSuffix(optKey)
   local key = fn.getcharstr() -- Prompt for user input
   local exitKeys = { [''] = true }
   if exitKeys[key] then error() end
-  local chars = opts[optKey].chars[key]
-  if optKey == 'putLinewiseSurround' or optKey == 'putCharwiseSurround' then
-    return unpack(chars or { key, key })
-  else
-    return unpack(chars or { key })
-  end
+  return unpack(opts[optKey].chars[key] or { key, key })
 end
 
 local function getLines(str, prefix, suffix)
@@ -112,7 +107,7 @@ end
 M.putCharwisePrefix = function(command)
   return function()
     putCharwise(command, function(str)
-      return getChars('putCharwisePrefix') .. str
+      return getPrefixSuffix('putCharwisePrefix') .. str
     end)
   end
 end
@@ -120,7 +115,7 @@ end
 M.putCharwiseSuffix = function(command)
   return function()
     putCharwise(command, function(str)
-      return str .. getChars('putCharwiseSuffix')
+      return str .. getPrefixSuffix('putCharwiseSuffix')
     end)
   end
 end
@@ -128,7 +123,7 @@ end
 M.putCharwiseSurround = function(command)
   return function()
     putCharwise(command, function(str)
-      local prefix, suffix = getChars('putCharwiseSurround')
+      local prefix, suffix = getPrefixSuffix('putCharwiseSurround')
       return (prefix or '') .. str .. (suffix or '')
     end)
   end
@@ -141,7 +136,8 @@ end
 M.putLinewisePrefix = function(command)
   return function()
     putLinewise(command, function(str)
-      return getLines(str, getChars('putLinewisePrefix'))
+      local prefix = getPrefixSuffix('putLinewisePrefix')
+      return getLines(str, prefix)
     end)
   end
 end
@@ -149,7 +145,8 @@ end
 M.putLinewiseSuffix = function(command)
   return function()
     putLinewise(command, function(str)
-      return getLines(str, nil, getChars('putLinewiseSuffix'))
+      local suffix = getPrefixSuffix('putLinewiseSuffix')
+      return getLines(str, nil, suffix)
     end)
   end
 end
@@ -157,7 +154,7 @@ end
 M.putLinewiseSurround = function(command)
   return function()
     putLinewise(command, function(str)
-      return getLines(str, getChars('putLinewiseSurround'))
+      return getLines(str, getPrefixSuffix('putLinewiseSurround'))
     end)
   end
 end
