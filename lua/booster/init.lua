@@ -62,7 +62,7 @@ local function getLines(str, prefix, suffix)
   return lines
 end
 
-local function pl(command, callback)
+local function putLinewise(command, callback)
   local register = getRegister(command)
   local str = register.contents
 
@@ -133,12 +133,12 @@ M.putCharwiseSurround = function(command)
 end
 
 M.putLinewise = function(command)
-  return function() pl(command) end
+  return function() putLinewise(command) end
 end
 
 M.putLinewisePrefix = function(command)
   return function()
-    pl(command, function(str)
+    putLinewise(command, function(str)
       local key = getKey()
       return getLines(str, unpack(opts.putLinewisePrefix.chars[key] or { key }))
     end)
@@ -147,7 +147,7 @@ end
 
 M.putLinewiseSuffix = function(command)
   return function()
-    pl(command, function(str)
+    putLinewise(command, function(str)
       local key = getKey()
       return getLines(str, nil, unpack(opts.putLinewiseSuffix.chars[key] or { key }))
     end)
@@ -156,7 +156,7 @@ end
 
 M.putLinewiseSurround = function(command)
   return function()
-    pl(command, function(str)
+    putLinewise(command, function(str)
       local key = getKey()
       return getLines(str, unpack(opts.putLinewiseSurround.chars[key] or { key, key }))
     end)
