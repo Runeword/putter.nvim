@@ -29,11 +29,11 @@ local surround = {
 }
 
 local prefix = {
-  [','] = {', '}
+  [','] = { ', ' }
 }
 
 local suffix = {
-  [','] = {', '}
+  [','] = { ', ' }
 }
 
 local opts = {
@@ -45,11 +45,11 @@ local opts = {
   ['putCharwiseSuffix'] = { chars = suffix },
 }
 
-local function getPrefixSuffix(optKey)
+local function getPrefixSuffix(optsKey)
   local key = fn.getcharstr() -- Prompt for user input
   local exitKeys = { [''] = true }
   if exitKeys[key] then error() end
-  return unpack(opts[optKey].chars[key] or { key, key })
+  return unpack(opts[optsKey].chars[key] or { key, key })
 end
 
 local function formatLines(str, prefix, suffix)
@@ -70,7 +70,7 @@ local function putLinewise(command, callback)
     -- Add prefix and suffix
     local status
     status, str = pcall(callback, str)
-    if not status then print('str', str) end
+    if not status then print('error', str) end
   end
 
   fn.setreg(register.name, str, "V") -- Set register linewise
@@ -100,66 +100,66 @@ local function putCharwise(command, callback)
   fn.setreg(register.name, register.contents, register.type) -- Restore register
 end
 
-M.putCharwise = function(command)
-  return function() putCharwise(command) end
+local function formatCharsPrefix(str)
+  return getPrefixSuffix('putCharwisePrefix') .. str
 end
 
-M.putCharwisePrefix = function(command)
-  return function()
-    putCharwise(command, function(str)
-      return getPrefixSuffix('putCharwisePrefix') .. str
-    end)
-  end
+local function formatCharsSuffix(str)
+  return str .. getPrefixSuffix('putCharwiseSuffix')
 end
 
-M.putCharwiseSuffix = function(command)
-  return function()
-    putCharwise(command, function(str)
-      return str .. getPrefixSuffix('putCharwiseSuffix')
-    end)
-  end
+local function formatCharsSurround(str)
+  local prefix, suffix = getPrefixSuffix('putCharwiseSurround')
+  return (prefix or '') .. str .. (suffix or '')
 end
 
-M.putCharwiseSurround = function(command)
-  return function()
-    putCharwise(command, function(str)
-      local prefix, suffix = getPrefixSuffix('putCharwiseSurround')
-      return (prefix or '') .. str .. (suffix or '')
-    end)
-  end
+local function formatLinesPrefix(str)
+  local prefix = getPrefixSuffix('putLinewisePrefix')
+  return formatLines(str, prefix)
 end
 
-M.putLinewise = function(command)
-  return function() putLinewise(command) end
+local function formatLinesSuffix(str)
+  local suffix = getPrefixSuffix('putLinewiseSuffix')
+  return formatLines(str, nil, suffix)
 end
 
-M.putLinewisePrefix = function(command)
-  return function()
-    putLinewise(command, function(str)
-      local prefix = getPrefixSuffix('putLinewisePrefix')
-      return formatLines(str, prefix)
-    end)
-  end
+local function formatLinesSurround(str)
+  return formatLines(str, getPrefixSuffix('putLinewiseSurround'))
 end
 
-M.putLinewiseSuffix = function(command)
-  return function()
-    putLinewise(command, function(str)
-      local suffix = getPrefixSuffix('putLinewiseSuffix')
-      return formatLines(str, nil, suffix)
-    end)
-  end
+function M.putCharwise(command, callback)
+  return function() putCharwise(command, callback) end
 end
 
-M.putLinewiseSurround = function(command)
-  return function()
-    putLinewise(command, function(str)
-      return formatLines(str, getPrefixSuffix('putLinewiseSurround'))
-    end)
-  end
+function M.putCharwisePrefix(command)
+  return function() putCharwise(command, formatCharsPrefix) end
 end
 
-M.addBuffersToQfList = function()
+function M.putCharwiseSuffix(command)
+  return function() putCharwise(command, formatCharsSuffix) end
+end
+
+function M.putCharwiseSurround(command)
+  return function() putCharwise(command, formatCharsSurround) end
+end
+
+function M.putLinewise(command, callback)
+  return function() putLinewise(command, callback) end
+end
+
+function M.putLinewisePrefix(command)
+  return function() putLinewise(command, formatLinesPrefix) end
+end
+
+function M.putLinewiseSuffix(command)
+  return function() putLinewise(command, formatLinesSuffix) end
+end
+
+function M.putLinewiseSurround(command)
+  return function() putLinewise(command, formatLinesSurround) end
+end
+
+function M.addBuffersToQfList()
   local lastBuffer = fn.bufnr("$")
   local items = {}
 
@@ -191,10 +191,11 @@ local function cycleQfItem(a, b)
   end, 1000)
 end
 
-M.cycleNextQfItem = function()
+function M.cycleNextQfItem()
   cycleQfItem("cnext", "cfirst")
 end
-M.cyclePrevQfItem = function()
+
+function M.cyclePrevQfItem()
   cycleQfItem("cprev", "clast")
 end
 
