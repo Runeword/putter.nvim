@@ -52,7 +52,7 @@ local function getPrefixSuffix(optKey)
   return unpack(opts[optKey].chars[key] or { key, key })
 end
 
-local function getLines(str, prefix, suffix)
+local function formatLines(str, prefix, suffix)
   local lines = ''
 
   for line in str:gmatch("[^\r\n]+") do
@@ -137,7 +137,7 @@ M.putLinewisePrefix = function(command)
   return function()
     putLinewise(command, function(str)
       local prefix = getPrefixSuffix('putLinewisePrefix')
-      return getLines(str, prefix)
+      return formatLines(str, prefix)
     end)
   end
 end
@@ -146,7 +146,7 @@ M.putLinewiseSuffix = function(command)
   return function()
     putLinewise(command, function(str)
       local suffix = getPrefixSuffix('putLinewiseSuffix')
-      return getLines(str, nil, suffix)
+      return formatLines(str, nil, suffix)
     end)
   end
 end
@@ -154,7 +154,7 @@ end
 M.putLinewiseSurround = function(command)
   return function()
     putLinewise(command, function(str)
-      return getLines(str, getPrefixSuffix('putLinewiseSurround'))
+      return formatLines(str, getPrefixSuffix('putLinewiseSurround'))
     end)
   end
 end
