@@ -29,11 +29,11 @@ local surround = {
 }
 
 local prefix = {
-  [','] = ', '
+  [','] = {', '}
 }
 
 local suffix = {
-  [','] = ', '
+  [','] = {', '}
 }
 
 local opts = {
