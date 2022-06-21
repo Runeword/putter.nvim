@@ -52,12 +52,18 @@ local function getPrefixSuffix(optsKey)
   return unpack(opts[optsKey].chars[key] or { key, key })
 end
 
-local function formatLines(str, prefix, suffix)
+local function appendPrefixSuffix(prefix, suffix)
+  return function(chars)
+    return (prefix or '') .. chars .. (suffix or '')
+  end
+end
+
+local function formatLines(str, callback)
   local lines = ''
 
   for line in str:gmatch("[^\r\n]+") do
     local spacesStart, chars, spacesEnd = line:match("^(%s*)(.-)(%s*)$")
-    lines = lines .. spacesStart .. (prefix or '') .. chars .. (suffix or '') .. spacesEnd .. '\n'
+    lines = lines .. spacesStart .. callback(chars) .. spacesEnd .. '\n'
   end
   return lines
 end
@@ -67,10 +73,9 @@ local function putLinewise(command, callback)
   local str = register.contents
 
   if callback then
-    -- Add prefix and suffix
     local status
     status, str = pcall(callback, str)
-    if not status then print('error', str) end
+    if not status then print(str) end
   end
 
   fn.setreg(register.name, str, "V") -- Set register linewise
@@ -89,10 +94,9 @@ local function putCharwise(command, callback)
   end
 
   if callback then
-    -- Add prefix and suffix
     local status
     status, str = pcall(callback, str)
-    if not status then return end
+    if not status then print(str) end
   end
 
   fn.setreg(register.name, str, "v") -- Set register charwise
@@ -115,16 +119,17 @@ end
 
 local function formatLinesPrefix(str)
   local prefix = getPrefixSuffix('putLinewisePrefix')
-  return formatLines(str, prefix)
+  return formatLines(str, appendPrefixSuffix(prefix))
 end
 
 local function formatLinesSuffix(str)
   local suffix = getPrefixSuffix('putLinewiseSuffix')
-  return formatLines(str, nil, suffix)
+  return formatLines(str, appendPrefixSuffix(nil, suffix))
 end
 
 local function formatLinesSurround(str)
-  return formatLines(str, getPrefixSuffix('putLinewiseSurround'))
+  local prefix, suffix = getPrefixSuffix('putLinewiseSurround')
+  return formatLines(str, appendPrefixSuffix(prefix, suffix))
 end
 
 function M.putCharwise(command, callback)
