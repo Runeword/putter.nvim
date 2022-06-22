@@ -29,11 +29,11 @@ local surround = {
 }
 
 local prefix = {
-  [','] = { ', ' }
+  [','] = ', '
 }
 
 local suffix = {
-  [','] = { ', ' }
+  [','] = ', '
 }
 
 local opts = {
@@ -47,9 +47,15 @@ local opts = {
 
 local function getPrefixSuffix(optsKey)
   local key = fn.getcharstr() -- Prompt for user input
+
   local exitKeys = { [''] = true }
   if exitKeys[key] then error() end
-  return unpack(opts[optsKey].chars[key] or { key, key })
+
+  local chars = opts[optsKey].chars[key]
+
+  if type(chars) == 'string' then return chars, chars
+  elseif type(chars) == 'table' then return unpack(chars)
+  else return key, key end
 end
 
 local function appendPrefixSuffix(prefix, suffix)
@@ -124,6 +130,7 @@ end
 
 local function formatLinesSuffix(str)
   local suffix = getPrefixSuffix('putLinewiseSuffix')
+  print('suffix', suffix)
   return formatLines(str, appendPrefixSuffix(nil, suffix))
 end
 
