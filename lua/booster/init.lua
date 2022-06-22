@@ -53,7 +53,7 @@ local function getPrefixSuffix(optsKey)
 
   local chars = opts[optsKey].chars[key]
 
-  if type(chars) == 'string' then return chars, chars
+  if type(chars) == 'string' then return chars
   elseif type(chars) == 'table' then return unpack(chars)
   else return key, key end
 end
@@ -124,19 +124,15 @@ local function formatCharsSurround(str)
 end
 
 local function formatLinesPrefix(str)
-  local prefix = getPrefixSuffix('putLinewisePrefix')
-  return formatLines(str, appendPrefixSuffix(prefix))
+  return formatLines(str, appendPrefixSuffix(getPrefixSuffix('putLinewisePrefix')))
 end
 
 local function formatLinesSuffix(str)
-  local suffix = getPrefixSuffix('putLinewiseSuffix')
-  print('suffix', suffix)
-  return formatLines(str, appendPrefixSuffix(nil, suffix))
+  return formatLines(str, appendPrefixSuffix(nil, getPrefixSuffix('putLinewiseSuffix')))
 end
 
 local function formatLinesSurround(str)
-  local prefix, suffix = getPrefixSuffix('putLinewiseSurround')
-  return formatLines(str, appendPrefixSuffix(prefix, suffix))
+  return formatLines(str, appendPrefixSuffix(getPrefixSuffix('putLinewiseSurround')))
 end
 
 function M.putCharwise(command, callback)
