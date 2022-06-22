@@ -74,6 +74,10 @@ local function formatLines(str, callback)
   return lines
 end
 
+local function formatChars(str, callback)
+  return callback(str)
+end
+
 local function putLinewise(command, callback)
   local register = getRegister(command)
   local str = register.contents
@@ -81,7 +85,7 @@ local function putLinewise(command, callback)
   if callback then
     local status
     status, str = pcall(callback, str)
-    if not status then print(str) end
+    if not status then return end
   end
 
   fn.setreg(register.name, str, "V") -- Set register linewise
@@ -102,7 +106,7 @@ local function putCharwise(command, callback)
   if callback then
     local status
     status, str = pcall(callback, str)
-    if not status then print(str) end
+    if not status then return end
   end
 
   fn.setreg(register.name, str, "v") -- Set register charwise
@@ -111,20 +115,21 @@ local function putCharwise(command, callback)
 end
 
 local function formatCharsPrefix(str)
-  return getPrefixSuffix('putCharwisePrefix') .. str
+  local prefix = getPrefixSuffix('putCharwisePrefix')
+  return formatChars(str, appendPrefixSuffix(prefix))
 end
 
 local function formatCharsSuffix(str)
-  return str .. getPrefixSuffix('putCharwiseSuffix')
+  return formatChars(str, appendPrefixSuffix(nil, getPrefixSuffix('putCharwiseSuffix')))
 end
 
 local function formatCharsSurround(str)
-  local prefix, suffix = getPrefixSuffix('putCharwiseSurround')
-  return (prefix or '') .. str .. (suffix or '')
+  return formatChars(str, appendPrefixSuffix(getPrefixSuffix('putCharwiseSurround')))
 end
 
 local function formatLinesPrefix(str)
-  return formatLines(str, appendPrefixSuffix(getPrefixSuffix('putLinewisePrefix')))
+  local prefix = getPrefixSuffix('putLinewisePrefix')
+  return formatLines(str, appendPrefixSuffix(prefix))
 end
 
 local function formatLinesSuffix(str)
