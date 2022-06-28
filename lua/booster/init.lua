@@ -6,10 +6,10 @@ local tbl_deep_extend = vim.tbl_deep_extend
 
 local M = {}
 
-local opts
+local opts = require("booster.opts")
 
 M.setup = function(userOpts)
-  opts = tbl_deep_extend("force", require("booster.opts"), userOpts or {})
+  opts = tbl_deep_extend("force", opts, userOpts or {})
 end
 
 local function getRegister(command)
