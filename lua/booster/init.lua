@@ -1,12 +1,16 @@
 local v = vim.v
 local fn = vim.fn
 local cmd = vim.cmd
--- local map = vim.keymap.set
+local tbl_deep_extend = vim.tbl_deep_extend
 -- vim.pretty_print(buffers)
 
 local M = {}
 
--- M.setup = function(opts) end
+local opts
+
+M.setup = function(userOpts)
+  opts = tbl_deep_extend("force", require("booster.opts"), userOpts or {})
+end
 
 local function getRegister(command)
   local register = {}
@@ -15,35 +19,6 @@ local function getRegister(command)
   register.type = fn.getregtype(register.name)
   return register
 end
-
-local surround = {
-  [')'] = { '(', ')' },
-  ['('] = { '(', ')' },
-  [']'] = { '[', ']' },
-  ['['] = { '[', ']' },
-  ['}'] = { '{', '}' },
-  ['{'] = { '{', '}' },
-  ['>'] = { '<', '>' },
-  ['<'] = { '<', '>' },
-  [','] = { ', ', ',' }
-}
-
-local prefix = {
-  [','] = ', '
-}
-
-local suffix = {
-  [','] = ', '
-}
-
-local opts = {
-  ['putLinewiseSurround'] = { chars = surround },
-  ['putCharwiseSurround'] = { chars = surround },
-  ['putLinewisePrefix'] = { chars = prefix },
-  ['putCharwisePrefix'] = { chars = prefix },
-  ['putLinewiseSuffix'] = { chars = suffix },
-  ['putCharwiseSuffix'] = { chars = suffix },
-}
 
 local function getPrefixSuffix(optsKey)
   local key = fn.getcharstr() -- Prompt for user input
