@@ -64,20 +64,26 @@ local function putLinewise(command, callback)
   end
 
   fn.setreg(register.name, str, "V") -- Set register linewise
-  fn.execute("normal! " .. v.count1 .. '"' .. register.name .. command) -- Paste register
+  fn.execute("normal! " .. v.count1 .. '"' .. register.name .. command) -- Put register
   fn.setreg(register.name, register.contents, register.type) -- Restore register
 end
 
 local function putCharwise(command, callback)
   local register = getRegister(command)
-  local linewise = "V"
   local str = ''
 
-  -- Remove spaces at both extremities
-  if register.type == linewise then str = register.contents:gsub("^%s*(.-)%s*$", "%1")
+  -- If register type is blockwise-visual then put as usual
+  if register.type ~= "V" and register.type ~= "v" then
+    fn.execute("normal! " .. v.count1 .. '"' .. register.name .. command)
+    return
+  end
+
+  -- If register type is linewise then remove spaces at both extremities
+  if register.type == "V" then str = register.contents:gsub("^%s*(.-)%s*$", "%1")
   else str = register.contents
   end
 
+  -- Invoke the callback function to format the register contents
   if callback then
     local status
     status, str = pcall(callback, str)
@@ -85,7 +91,7 @@ local function putCharwise(command, callback)
   end
 
   fn.setreg(register.name, str, "v") -- Set register charwise
-  fn.execute("normal! " .. v.count1 .. '"' .. register.name .. command) -- Paste register
+  fn.execute("normal! " .. v.count1 .. '"' .. register.name .. command) -- Put register
   fn.setreg(register.name, register.contents, register.type) -- Restore register
 end
 
