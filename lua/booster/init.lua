@@ -40,6 +40,8 @@ local function appendPrefixSuffix(prefix, suffix)
 end
 
 local function formatLines(str, callback)
+  if not callback then return str end
+
   local lines = ''
 
   for line in str:gmatch("[^\r\n]+") do
@@ -57,9 +59,11 @@ local function putLinewise(command, callback)
   local register = getRegister(command)
   local str = register.contents
 
+  -- Invoke the callback function to format the register contents
   if callback then
     local status
     status, str = pcall(callback, str)
+    -- print('status', status, str)
     if not status then return end
   end
 
@@ -70,7 +74,7 @@ end
 
 local function putCharwise(command, callback)
   local register = getRegister(command)
-  local str = ''
+  local str
 
   -- If register type is blockwise-visual then put as usual
   if register.type ~= "V" and register.type ~= "v" then
@@ -138,7 +142,8 @@ function M.putCharwiseSurround(command)
 end
 
 function M.putLinewise(command, callback)
-  return function() putLinewise(command, callback) end
+  -- return function() putLinewise(command, callback) end
+  return function() putLinewise(command, function(str) return formatLines(str, callback) end) end
 end
 
 function M.putLinewisePrefix(command)
