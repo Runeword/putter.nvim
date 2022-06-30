@@ -1,3 +1,11 @@
+# booster.nvim
+Collection of extensible mappings that ***boost*** vim everyday commands  
+## Installation
+
+Install the plugin with [packer](https://github.com/wbthomason/packer.nvim)
+```lua
+use("Runeword/booster.nvim")
+```
 ### Put charwise, linewise
 
 Functions that take as first argument any normal command that contains `p` such as
@@ -25,7 +33,7 @@ end))
 
 ### Put with prefix, suffix, or surround
 
-Functions that ask user for a key that determines which prefix, suffix, or surround is added to the text
+Like `putCharwise()` or `putLinewise()` + ask user for a key that determines which prefix, suffix, or surround is added to the text
 ```lua
 vim.keymap.set({'n','x'}, 'gllp', require('booster').putLinewiseSuffix(']p`]'))
 vim.keymap.set({'n','x'}, 'gllP', require('booster').putLinewiseSuffix(']P`]'))
@@ -38,4 +46,3 @@ vim.keymap.set({'n', 'x'}, 'gP', require('booster').putCharwiseSuffix('P'))
 vim.keymap.set({'n', 'x'}, 'gsp', require('booster').putCharwiseSurround('p'))
 vim.keymap.set({'n', 'x'}, 'gsP', require('booster').putCharwiseSurround('P'))
 ```
-
