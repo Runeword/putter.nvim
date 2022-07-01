@@ -33,7 +33,7 @@ end))
 
 ### Put with prefix, suffix, or surround
 
-Like `putCharwise()` or `putLinewise()` + ask user for a key that determines which prefix, suffix, or surround is added to the text
+Like `putCharwise()` or `putLinewise()` + ask you for a key that determines which prefix, suffix, or surround is added to the putted text
 ```lua
 vim.keymap.set({'n','x'}, 'gllp', require('booster').putLinewiseSuffix(']p`]'))
 vim.keymap.set({'n','x'}, 'gllP', require('booster').putLinewiseSuffix(']P`]'))
@@ -45,4 +45,29 @@ vim.keymap.set({'n', 'x'}, 'gp', require('booster').putCharwisePrefix('p'))
 vim.keymap.set({'n', 'x'}, 'gP', require('booster').putCharwiseSuffix('P'))
 vim.keymap.set({'n', 'x'}, 'gsp', require('booster').putCharwiseSurround('p'))
 vim.keymap.set({'n', 'x'}, 'gsP', require('booster').putCharwiseSurround('P'))
+```
+Each function has its own table where entries consists of characters associated with a key  
+If there's no value associated with the key you pressed, then the key is used as a character instead  
+
+You can extend or overwrite the [default config](https://github.com/Runeword/booster.nvim/blob/main/lua/booster/opts.lua)  
+
+```lua
+require("booster").setup({
+  putLinewiseSurround = {
+    chars = {
+      ['('] = { 'prefix chars', 'suffix chars' },
+      ['q'] = { '\' ', ' \'' }
+    }
+  },
+  putCharwisePrefix = {
+    chars = {
+      ['.'] = 'prefix chars'
+    }
+  },
+  putLinewiseSuffix = {
+    chars = {
+      [','] = nil
+    }
+  }
+})
 ```
