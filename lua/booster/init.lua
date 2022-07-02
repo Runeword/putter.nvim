@@ -172,12 +172,12 @@ end
 
 local timer
 
-local function cycleQfItem(a, b)
+local function cycleQfItem(a, b, open, close)
   local lastWindow = fn.winnr("$")
 
   for i = 1, lastWindow do
     if fn.getwinvar(i, "&syntax") == "qf" then break
-    elseif i == lastWindow then cmd("silent copen") end
+    elseif i == lastWindow then cmd("silent " .. open) end
   end
 
   if timer then timer:close() end
@@ -185,17 +185,25 @@ local function cycleQfItem(a, b)
   if not pcall(cmd, a) then pcall(cmd, b) end
 
   timer = vim.defer_fn(function()
-    cmd("cclose")
+    cmd(close)
     timer = nil
   end, 1000)
 end
 
+function M.cycleNextLocItem()
+  cycleQfItem("lnext", "lfirst", "lopen", "lclose")
+end
+
+function M.cyclePrevLocItem()
+  cycleQfItem("lprev", "llast", "lopen", "lclose")
+end
+
 function M.cycleNextQfItem()
-  cycleQfItem("cnext", "cfirst")
+  cycleQfItem("cnext", "cfirst", "copen", "cclose")
 end
 
 function M.cyclePrevQfItem()
-  cycleQfItem("cprev", "clast")
+  cycleQfItem("cprev", "clast", "copen", "cclose")
 end
 
 return M
