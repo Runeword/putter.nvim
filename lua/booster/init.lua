@@ -196,14 +196,18 @@ local function isPastEndOfLine()
 end
 
 local function isBeforeFirstNonBlank()
-  return fn.col(".") <= string.find(fn.getline(fn.line(".")), "(%S)") - 1
+  return (o.virtualedit ~= '') and (fn.col(".") <= string.find(fn.getline(fn.line(".")), "(%S)") - 1)
 end
 
 local function snapToLine(command, callback)
-  if isPastEndOfLine() or isBeforeFirstNonBlank()
-  then fn.execute('normal! ' .. command)
+  if isPastEndOfLine() or isBeforeFirstNonBlank() then
+    fn.execute('normal! ' .. command)
   end
-  callback()
+
+  if type(callback) == 'string' then
+    fn.execute('normal! ' .. callback)
+  else callback()
+  end
 end
 
 function M.snapToLine(command, callback)
