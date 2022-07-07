@@ -1,4 +1,5 @@
 local v = vim.v
+local o = vim.o
 local fn = vim.fn
 local cmd = vim.cmd
 local tbl_deep_extend = vim.tbl_deep_extend
@@ -187,7 +188,34 @@ local function cycleQfItem(a, b, open, close)
   timer = vim.defer_fn(function()
     cmd(close)
     timer = nil
-  end, 1000)
+  end, 10000)
+end
+
+local function isPastEndOfLine()
+  return (o.virtualedit ~= '') and (fn.col('.') >= fn.col('$'))
+end
+
+local function isBeforeFirstNonBlank()
+  return fn.col(".") <= string.find(fn.getline(fn.line(".")), "(%S)") - 1
+end
+
+local function snapToLine(command, callback)
+  if isPastEndOfLine() or isBeforeFirstNonBlank()
+  then fn.execute('normal! ' .. command)
+  end
+  callback()
+end
+
+function M.snapToLine(command, callback)
+  return function() snapToLine(command, callback) end
+end
+
+function M.snapToLineStart(callback)
+  return function() snapToLine('^', callback) end
+end
+
+function M.snapToLineEnd(callback)
+  return function() snapToLine('$', callback) end
 end
 
 function M.cycleNextLocItem()
