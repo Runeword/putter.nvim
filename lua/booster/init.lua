@@ -199,27 +199,35 @@ local function isBeforeFirstNonBlank()
   return (o.virtualedit ~= '') and (fn.col(".") <= string.find(fn.getline(fn.line(".")), "(%S)") - 1)
 end
 
-local function snapToLine(command, callback)
-  if isPastEndOfLine() or isBeforeFirstNonBlank() then
-    fn.execute('normal! ' .. command)
-  end
-
-  if type(callback) == 'string' then
-    fn.execute('normal! ' .. callback)
-  else callback()
-  end
-end
-
-function M.snapToLine(command, callback)
-  return function() snapToLine(command, callback) end
-end
-
 function M.snapToLineStart(callback)
-  return function() snapToLine('^', callback) end
+  return function()
+    if isBeforeFirstNonBlank() then fn.execute('normal! ^') end
+    if type(callback) == 'string' then fn.execute('normal! ' .. callback) else callback() end
+  end
 end
 
 function M.snapToLineEnd(callback)
-  return function() snapToLine('$', callback) end
+  return function()
+    if isPastEndOfLine() then fn.execute('normal! $') end
+    if type(callback) == 'string' then fn.execute('normal! ' .. callback) else callback() end
+  end
+end
+
+local function jumpToLine(command, callback)
+  if isPastEndOfLine() or isBeforeFirstNonBlank() then fn.execute('normal! ' .. command) end
+  if type(callback) == 'string' then fn.execute('normal! ' .. callback) else callback() end
+end
+
+function M.jumpToLine(command, callback)
+  return function() jumpToLine(command, callback) end
+end
+
+function M.jumpToLineStart(callback)
+  return function() jumpToLine('^', callback) end
+end
+
+function M.jumpToLineEnd(callback)
+  return function() jumpToLine('$', callback) end
 end
 
 function M.cycleNextLocItem()
