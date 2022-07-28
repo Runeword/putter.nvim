@@ -101,16 +101,17 @@ local function putCharwise(command, callback)
 end
 
 local function formatCharsPrefix(str)
-  local prefix = getPrefixSuffix('putCharwisePrefix')
-  return formatChars(str, appendPrefixSuffix(prefix))
+  return (getPrefixSuffix('putCharwisePrefix') or '') .. str
 end
 
 local function formatCharsSuffix(str)
-  return formatChars(str, appendPrefixSuffix(nil, getPrefixSuffix('putCharwiseSuffix')))
+  local _, suffix = getPrefixSuffix('putCharwiseSuffix')
+  return str .. (suffix or '')
 end
 
 local function formatCharsSurround(str)
-  return formatChars(str, appendPrefixSuffix(getPrefixSuffix('putCharwiseSurround')))
+  local prefix, suffix = getPrefixSuffix('putCharwiseSurround')
+  return (prefix or '') .. str .. (suffix or '')
 end
 
 local function formatLinesPrefix(str)
