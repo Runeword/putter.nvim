@@ -21,23 +21,24 @@ local function getRegister(command)
   return register
 end
 
-local function getPrefixSuffix(optsKey)
-  local key = fn.getcharstr() -- Prompt for user input
+local function getInputKey()
+  local inputKey = fn.getcharstr() -- Prompt for user input
 
   local exitKeys = { [''] = true }
-  if exitKeys[key] then error() end
+  if exitKeys[inputKey] then error() end
+  return inputKey
+end
 
-  local chars = opts[optsKey].chars[key]
+local function getPrefixSuffix(optsKey, inputKey)
+  local chars = opts[optsKey].chars[inputKey]
 
   if type(chars) == 'string' then return chars
   elseif type(chars) == 'table' then return unpack(chars)
-  else return key, key end
+  else return inputKey, inputKey end
 end
 
-local function appendPrefixSuffix(prefix, suffix)
-  return function(chars)
+local function appendPrefixSuffix(chars, prefix, suffix)
     return (prefix or '') .. chars .. (suffix or '')
-  end
 end
 
 local function formatLines(str, callback)
@@ -52,16 +53,13 @@ local function formatLines(str, callback)
   return lines
 end
 
-local function formatChars(str, callback)
-  return callback(str)
-end
-
 local function putLinewise(command, callback)
   local register = getRegister(command)
   local str = register.contents
 
   -- Invoke the callback function to format the register contents
   if callback then
+    -- formatLines(str, function(line) return appendPrefixSuffix(line, prefix, nil) end)
     local status
     status, str = pcall(callback, str)
     -- print('status', status, str)
@@ -101,30 +99,33 @@ local function putCharwise(command, callback)
 end
 
 local function formatCharsPrefix(str)
-  return (getPrefixSuffix('putCharwisePrefix') or '') .. str
+  local prefix = getPrefixSuffix('putCharwisePrefix', getInputKey())
+  return appendPrefixSuffix(str, prefix)
 end
 
 local function formatCharsSuffix(str)
-  local _, suffix = getPrefixSuffix('putCharwiseSuffix')
-  return str .. (suffix or '')
+  local _, suffix = getPrefixSuffix('putCharwiseSuffix', getInputKey())
+  return appendPrefixSuffix(str, nil, suffix)
 end
 
 local function formatCharsSurround(str)
-  local prefix, suffix = getPrefixSuffix('putCharwiseSurround')
-  return (prefix or '') .. str .. (suffix or '')
+  local prefix, suffix = getPrefixSuffix('putCharwiseSurround', getInputKey())
+  return appendPrefixSuffix(str, prefix, suffix)
 end
 
 local function formatLinesPrefix(str)
-  local prefix = getPrefixSuffix('putLinewisePrefix')
-  return formatLines(str, appendPrefixSuffix(prefix))
+  local prefix = getPrefixSuffix('putLinewisePrefix', getInputKey())
+  return formatLines(str, function(line) return appendPrefixSuffix(line, prefix, nil) end)
 end
 
 local function formatLinesSuffix(str)
-  return formatLines(str, appendPrefixSuffix(nil, getPrefixSuffix('putLinewiseSuffix')))
+  local _, suffix = getPrefixSuffix('putLinewiseSuffix', getInputKey())
+  return formatLines(str, function(line) return appendPrefixSuffix(line, nil, suffix) end)
 end
 
 local function formatLinesSurround(str)
-  return formatLines(str, appendPrefixSuffix(getPrefixSuffix('putLinewiseSurround')))
+  local prefix, suffix = getPrefixSuffix('putLinewiseSurround', getInputKey())
+  return formatLines(str, function(line) return appendPrefixSuffix(line, prefix, suffix) end)
 end
 
 function M.putCharwise(command, callback)
@@ -144,7 +145,6 @@ function M.putCharwiseSurround(command)
 end
 
 function M.putLinewise(command, callback)
-  -- return function() putLinewise(command, callback) end
   return function() putLinewise(command, function(str) return formatLines(str, callback) end) end
 end
 
