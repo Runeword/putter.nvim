@@ -7,7 +7,7 @@ local tbl_deep_extend = vim.tbl_deep_extend
 
 local M = {}
 
-local opts = require("booster.opts")
+local opts = require("putter.opts")
 
 M.setup = function(userOpts)
   opts = tbl_deep_extend("force", opts, userOpts or {})
