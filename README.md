@@ -1,5 +1,4 @@
-# booster.nvim
-Collection of extensible mappings that ***boost*** vim everyday commands  
+# putter.nvim
 ## Installation
 
 Install the plugin with [packer](https://github.com/wbthomason/packer.nvim)
