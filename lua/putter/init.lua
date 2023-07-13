@@ -1,3 +1,4 @@
+local vim = vim
 local v = vim.v
 local o = vim.o
 local fn = vim.fn
@@ -59,6 +60,44 @@ end
 
 function M.putLinewise(command)
   return function() putLinewise(command) end
+end
+
+local function isEndOfWord()
+  local pos = vim.fn.getpos('.')
+  vim.print(pos)
+  vim.fn.execute("normal! gee")
+  vim.print(vim.fn.getpos('.'))
+  if table.concat(pos) == table.concat(vim.fn.getpos('.')) then
+    return true
+  else
+    vim.fn.setpos('.', pos)
+    return false
+  end
+end
+
+local function isStartOfWord()
+  local pos = vim.fn.getpos('.')
+  vim.print(pos)
+  vim.fn.execute("normal! gew")
+  vim.print(vim.fn.getpos('.'))
+  if table.concat(pos) == table.concat(vim.fn.getpos('.')) then
+    return true
+  else
+    vim.fn.setpos('.', pos)
+    return false
+  end
+end
+
+function M.putWordwise()
+  return function()
+    local command
+    if isStartOfWord() and not isEndOfWord() then
+      command = 'P'
+    else
+      command = 'p'
+    end
+    putCharwise(command)
+  end
 end
 
 -------------------- Snap
